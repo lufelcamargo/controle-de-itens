@@ -1,6 +1,5 @@
 package com.example.controleitens.data.local.repository
 
-import com.example.controleitens.data.local.entity.SaidaEntity
 import com.example.controleitens.domain.model.Saida
 import com.example.controleitens.domain.model.StatusSaida
 import kotlinx.coroutines.test.runTest

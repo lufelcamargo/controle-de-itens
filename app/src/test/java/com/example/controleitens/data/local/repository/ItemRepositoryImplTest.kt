@@ -1,7 +1,5 @@
 package com.example.controleitens.data.local.repository
 
-import com.example.controleitens.data.local.dao.ItemDao
-import com.example.controleitens.data.local.entity.ItemEntity
 import com.example.controleitens.domain.model.Item
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
