@@ -5,5 +5,6 @@ data class ItemSaida(
     val saidaId: String,
     val itemId: String,
     val nomeItem: String,
-    val quantidade: Int
+    val quantidade: Int,
+    val conferido: Boolean = false
 )
