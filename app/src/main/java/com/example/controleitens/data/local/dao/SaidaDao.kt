@@ -16,8 +16,8 @@ interface SaidaDao {
     @Update
     suspend fun atualizar(saida: SaidaEntity)
 
-    @Delete
-    suspend fun excluir(saida: SaidaEntity)
+    @Query("DELETE FROM saidas WHERE id = :id")
+    suspend fun excluir(id: String)
 
     @Query("SELECT * FROM saidas WHERE id = :id")
     suspend fun buscarPorId(id: String): SaidaEntity?

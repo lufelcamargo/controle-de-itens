@@ -16,8 +16,11 @@ interface ItemSaidaDao {
     @Update
     suspend fun atualizar(item: ItemSaidaEntity)
 
-    @Delete
-    suspend fun excluir(item: ItemSaidaEntity)
+    @Query("DELETE FROM itens_saida WHERE id = :id")
+    suspend fun excluir(id: String)
+
+    @Query("DELETE FROM itens_saida WHERE saidaId = :saidaId")
+    suspend fun excluirPorSaidaId(saidaId: String)
 
     @Query("SELECT * FROM itens_saida WHERE id = :id")
     suspend fun buscarPorId(id: String): ItemSaidaEntity?
