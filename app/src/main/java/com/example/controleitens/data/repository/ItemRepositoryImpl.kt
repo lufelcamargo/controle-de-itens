@@ -1,4 +1,4 @@
-package com.example.controleitens.data.repository
+package com.example.controleitens.data.local.repository
 
 import com.example.controleitens.data.local.dao.ItemDao
 import com.example.controleitens.data.local.entity.ItemEntity
@@ -13,34 +13,37 @@ class ItemRepositoryImpl(
         itemDao.inserir(item.toEntity())
     }
 
-    override suspend fun buscarAtivos(): List<Item> {
-        return itemDao.buscarAtivos().map { it.toDomain() }
+    override suspend fun editar(item: Item) {
+        itemDao.atualizar(item.toEntity())
+    }
+
+    override suspend fun excluir(item: Item) {
+        itemDao.atualizar(
+            item.toEntity().copy(ativo = false)
+        )
     }
 
     override suspend fun buscarPorId(id: String): Item? {
         return itemDao.buscarPorId(id)?.toDomain()
     }
 
-    override suspend fun editar(item: Item) {
-        itemDao.atualizar(item.toEntity())
-    }
-
-    override suspend fun excluir(id: String) {
-        itemDao.desativar(id)
+    override suspend fun buscarAtivos(): List<Item> {
+        return itemDao.buscarAtivos().map { it.toDomain() }
     }
 
     private fun Item.toEntity(): ItemEntity {
         return ItemEntity(
             id = id,
             nome = nome,
-            ativo = true
+            ativo = ativo
         )
     }
 
     private fun ItemEntity.toDomain(): Item {
         return Item(
             id = id,
-            nome = nome
+            nome = nome,
+            ativo = ativo
         )
     }
 }
