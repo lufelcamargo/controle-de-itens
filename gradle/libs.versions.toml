@@ -8,6 +8,8 @@ appcompat = "1.6.1"
 material = "1.10.0"
 activityKtx = "1.8.0"
 constraintlayout = "2.1.4"
+composeBom = "2026.08.00"
+activityCompose = "1.12.1"
 
 room = "3.0.2"
 ksp = "2.3.10"
@@ -27,7 +29,15 @@ androidx-room3-runtime = { module = "androidx.room3:room3-runtime", version.ref 
 androidx-room3-compiler = { module = "androidx.room3:room3-compiler", version.ref = "room" }
 androidx-sqlite-framework = { module = "androidx.sqlite:sqlite-framework", version.ref = "sqlite" }
 
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+
+androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" }
+androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
+
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
-
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version = "2.3.10" }
