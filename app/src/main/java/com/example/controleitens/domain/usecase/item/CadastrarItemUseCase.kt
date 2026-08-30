@@ -1,6 +1,6 @@
 package com.example.controleitens.domain.usecase.item
 
-import com.example.controleitens.domain.model.Itemdir /a
+import com.example.controleitens.domain.model.Item
 import com.example.controleitens.domain.repository.ItemRepository
 
 class CadastrarItemUseCase(
