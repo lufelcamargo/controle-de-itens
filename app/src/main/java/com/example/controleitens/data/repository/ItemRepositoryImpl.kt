@@ -17,10 +17,14 @@ class ItemRepositoryImpl(
         itemDao.atualizar(item.toEntity())
     }
 
-    override suspend fun excluir(item: Item) {
-        itemDao.atualizar(
-            item.toEntity().copy(ativo = false)
-        )
+    override suspend fun excluir(id: String) {
+        val item = itemDao.buscarPorId(id)
+
+        if (item != null) {
+            itemDao.atualizar(
+                item.copy(ativo = false)
+            )
+        }
     }
 
     override suspend fun buscarPorId(id: String): Item? {
