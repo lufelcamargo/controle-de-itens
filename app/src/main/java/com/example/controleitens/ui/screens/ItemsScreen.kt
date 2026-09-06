@@ -33,6 +33,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -71,6 +73,14 @@ fun ItemsScreen(
                 "Mochila"
             )
         )
+    }
+
+    var ordemCrescente by remember {
+        mutableStateOf(true)
+    }
+
+    var mostrarOpcoesOrdenacao by remember {
+        mutableStateOf(false)
     }
 
     Column(
@@ -121,13 +131,46 @@ fun ItemsScreen(
             )
 
             TextButton(
-                onClick = {}
+                onClick = {
+                    mostrarOpcoesOrdenacao = true
+                }
             ) {
-                Text("A–Z")
+                Text(
+                    text = if (ordemCrescente) "A–Z" else "Z–A"
+                )
 
                 Icon(
                     imageVector = Icons.Default.ArrowDropDown,
                     contentDescription = "Ordenação"
+                )
+            }
+        }
+
+        if (mostrarOpcoesOrdenacao) {
+            DropdownMenu(
+                expanded = true,
+                onDismissRequest = {
+                    mostrarOpcoesOrdenacao = false
+                }
+            ) {
+                DropdownMenuItem(
+                    text = {
+                        Text("Nome A–Z")
+                    },
+                    onClick = {
+                        ordemCrescente = true
+                        mostrarOpcoesOrdenacao = false
+                    }
+                )
+
+                DropdownMenuItem(
+                    text = {
+                        Text("Nome Z–A")
+                    },
+                    onClick = {
+                        ordemCrescente = false
+                        mostrarOpcoesOrdenacao = false
+                    }
                 )
             }
         }
@@ -141,6 +184,11 @@ fun ItemsScreen(
                 .fillMaxWidth()
                 .weight(1f)
         ) {
+            val itensOrdenados = if (ordemCrescente) {
+                itens.sorted()
+            } else {
+                itens.sortedDescending()
+            }
 
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
@@ -149,7 +197,7 @@ fun ItemsScreen(
                     bottom = 88.dp
                 )
             ) {
-                items(itens) { item ->
+                items(itensOrdenados) { item ->
                     ItemRow(
                         nome = item,
                         onClick = {
