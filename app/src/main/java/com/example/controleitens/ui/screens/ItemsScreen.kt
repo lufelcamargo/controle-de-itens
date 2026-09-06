@@ -34,6 +34,10 @@ import androidx.compose.runtime.setValue
 
 import androidx.compose.material3.AlertDialog
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+
 @Composable
 fun ItemsScreen(
 
@@ -47,14 +51,16 @@ fun ItemsScreen(
         mutableStateOf("")
     }
 
-    val itens = remember {
-        listOf(
-            "Caderno",
-            "Carteira",
-            "Carregador",
-            "Chaves",
-            "Fone de ouvido",
-            "Mochila"
+    var itens by remember {
+        mutableStateOf(
+            listOf(
+                "Caderno",
+                "Carteira",
+                "Carregador",
+                "Chaves",
+                "Fone de ouvido",
+                "Mochila"
+            )
         )
     }
 
@@ -210,7 +216,12 @@ fun ItemsScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
+                        val nome = nomeNovoItem.trim()
+
+                        itens = (itens + nome).sorted()
+
                         mostrarDialogoCadastro = false
+                        nomeNovoItem = ""
                     },
                     enabled = nomeNovoItem.isNotBlank()
                 ) {
