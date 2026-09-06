@@ -5,7 +5,7 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
-private val DarkColorScheme = darkColorScheme(
+val DarkColorScheme = darkColorScheme(
     primary = Color(0xFFCBA6F7),
     onPrimary = Color(0xFF1E1E2E),
 
@@ -20,6 +20,9 @@ private val DarkColorScheme = darkColorScheme(
 
     surfaceVariant = Color(0xFF313244),
     onSurfaceVariant = Color(0xFFA6ADC8),
+
+    tertiary = Color(0xFFA6E3A1),
+    onTertiary = Color(0xFF1E1E2E),
 
     error = Color(0xFFF38BA8),
     onError = Color(0xFF1E1E2E)
