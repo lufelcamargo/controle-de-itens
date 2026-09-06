@@ -12,8 +12,10 @@ import androidx.navigation.compose.rememberNavController
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import com.example.controleitens.ui.components.BottomBar
+import com.example.controleitens.ui.screens.AboutScreen
 import com.example.controleitens.ui.screens.HomeScreen
 import com.example.controleitens.ui.screens.ItemsScreen
+import com.example.controleitens.ui.screens.SettingsScreen
 
 @Composable
 fun AppNavigation() {
@@ -77,11 +79,15 @@ fun AppNavigation() {
             }
 
             composable("ajustes") {
-                Text("Tela de Ajustes")
+                SettingsScreen(
+                    onSobreClick = {
+                        navController.navigate("sobre")
+                    }
+                )
             }
 
             composable("sobre") {
-                Text("Sobre o aplicativo")
+                AboutScreen()
             }
 
             composable("nova_saida") {
