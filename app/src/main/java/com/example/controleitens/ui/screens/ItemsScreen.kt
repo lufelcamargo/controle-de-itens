@@ -42,12 +42,21 @@ import androidx.compose.runtime.setValue
 fun ItemsScreen(
 
     onCadastrarItemClick: () -> Unit
+
 ) {
     var mostrarDialogoCadastro by remember {
         mutableStateOf(false)
     }
 
     var nomeNovoItem by remember {
+        mutableStateOf("")
+    }
+
+    var itemEditando by remember {
+        mutableStateOf<String?>(null)
+    }
+
+    var nomeEditado by remember {
         mutableStateOf("")
     }
 
@@ -143,7 +152,10 @@ fun ItemsScreen(
                 items(itens) { item ->
                     ItemRow(
                         nome = item,
-                        onClick = {}
+                        onClick = {
+                            itemEditando = item
+                            nomeEditado = item
+                        }
                     )
                 }
             }
@@ -226,6 +238,66 @@ fun ItemsScreen(
                     enabled = nomeNovoItem.isNotBlank()
                 ) {
                     Text("Cadastrar")
+                }
+            }
+        )
+    }
+
+    if (itemEditando != null) {
+        AlertDialog(
+            onDismissRequest = {
+                itemEditando = null
+            },
+            title = {
+                Text("Editar item")
+            },
+            text = {
+                OutlinedTextField(
+                    value = nomeEditado,
+                    onValueChange = {
+                        nomeEditado = it
+                    },
+                    label = {
+                        Text("Nome")
+                    },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        itens = itens.filter {
+                            it != itemEditando
+                        }
+
+                        itemEditando = null
+                        nomeEditado = ""
+                    }
+                ) {
+                    Text(
+                        text = "Excluir",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val nome = nomeEditado.trim()
+
+                        itens = itens
+                            .map {
+                                if (it == itemEditando) nome else it
+                            }
+                            .sorted()
+
+                        itemEditando = null
+                        nomeEditado = ""
+                    },
+                    enabled = nomeEditado.isNotBlank()
+                ) {
+                    Text("Salvar")
                 }
             }
         )
