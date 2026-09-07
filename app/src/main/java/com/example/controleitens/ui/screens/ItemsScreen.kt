@@ -42,9 +42,9 @@ import androidx.compose.runtime.setValue
 
 @Composable
 fun ItemsScreen(
-
+    itens: List<String>,
+    onItensChange: (List<String>) -> Unit,
     onCadastrarItemClick: () -> Unit
-
 ) {
     var mostrarDialogoCadastro by remember {
         mutableStateOf(false)
@@ -60,19 +60,6 @@ fun ItemsScreen(
 
     var nomeEditado by remember {
         mutableStateOf("")
-    }
-
-    var itens by remember {
-        mutableStateOf(
-            listOf(
-                "Caderno",
-                "Carteira",
-                "Carregador",
-                "Chaves",
-                "Fone de ouvido",
-                "Mochila"
-            )
-        )
     }
 
     var ordemCrescente by remember {
@@ -278,14 +265,16 @@ fun ItemsScreen(
                     onClick = {
                         val nome = nomeNovoItem.trim()
 
-                        itens = (itens + nome).sorted()
+                        onItensChange(
+                            (itens + nome).sorted()
+                        )
 
-                        mostrarDialogoCadastro = false
                         nomeNovoItem = ""
+                        mostrarDialogoCadastro = false
                     },
                     enabled = nomeNovoItem.isNotBlank()
                 ) {
-                    Text("Cadastrar")
+                    Text("Salvar")
                 }
             }
         )
@@ -315,9 +304,9 @@ fun ItemsScreen(
             dismissButton = {
                 TextButton(
                     onClick = {
-                        itens = itens.filter {
-                            it != itemEditando
-                        }
+                        onItensChange(
+                            itens.filter { it != itemEditando }
+                        )
 
                         itemEditando = null
                         nomeEditado = ""
@@ -334,11 +323,13 @@ fun ItemsScreen(
                     onClick = {
                         val nome = nomeEditado.trim()
 
-                        itens = itens
-                            .map {
-                                if (it == itemEditando) nome else it
-                            }
-                            .sorted()
+                        onItensChange(
+                            itens
+                                .map {
+                                    if (it == itemEditando) nome else it
+                                }
+                                .sorted()
+                        )
 
                         itemEditando = null
                         nomeEditado = ""

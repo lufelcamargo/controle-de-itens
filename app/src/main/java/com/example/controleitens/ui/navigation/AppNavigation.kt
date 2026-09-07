@@ -10,17 +10,37 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.example.controleitens.ui.components.BottomBar
 import com.example.controleitens.ui.screens.AboutScreen
+import com.example.controleitens.ui.screens.ConfigureSaidaScreen
 import com.example.controleitens.ui.screens.HomeScreen
 import com.example.controleitens.ui.screens.ItemsScreen
 import com.example.controleitens.ui.screens.SettingsScreen
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 @Composable
 fun AppNavigation() {
 
     val navController = rememberNavController()
+
+    var itens by remember {
+        mutableStateOf(
+            listOf(
+                "Caderno",
+                "Carteira",
+                "Carregador",
+                "Chaves",
+                "Fone de ouvido",
+                "Mochila"
+            )
+        )
+    }
 
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
@@ -72,8 +92,12 @@ fun AppNavigation() {
 
             composable("itens") {
                 ItemsScreen(
+                    itens = itens,
+                    onItensChange = { novosItens ->
+                        itens = novosItens
+                    },
                     onCadastrarItemClick = {
-                        // Por enquanto não faz nada
+                        // ...
                     }
                 )
             }
@@ -91,11 +115,31 @@ fun AppNavigation() {
             }
 
             composable("nova_saida") {
-                Text("Nova saída")
+                ConfigureSaidaScreen(
+                    titulo = "Nova saída",
+                    textoBotao = "Criar saída",
+                    itensDisponiveis = itens,
+                    onBackClick = {
+                        navController.popBackStack()
+                    },
+                    onConfirmClick = {
+                        // Por enquanto não faz nada
+                    }
+                )
             }
 
             composable("novo_modelo") {
-                Text("Novo modelo")
+                ConfigureSaidaScreen(
+                    titulo = "Novo modelo",
+                    textoBotao = "Salvar modelo",
+                    itensDisponiveis = itens,
+                    onBackClick = {
+                        navController.popBackStack()
+                    },
+                    onConfirmClick = {
+                        // Por enquanto não faz nada
+                    }
+                )
             }
         }
     }
