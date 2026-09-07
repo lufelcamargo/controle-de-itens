@@ -93,7 +93,9 @@ class SaidasViewModel(
         viewModelScope.launch {
             val saida = saidaRepository.buscarPorId(id)
 
-            if (saida != null && saida.status == StatusSaida.EM_ANDAMENTO) {
+            if (saida != null &&
+                saida.status == StatusSaida.EM_ANDAMENTO
+            ) {
                 saidaRepository.editar(
                     saida.copy(
                         status = StatusSaida.FINALIZADA
@@ -111,6 +113,16 @@ class SaidasViewModel(
             saidaRepository.excluir(id)
 
             carregarSaidas()
+        }
+    }
+
+    fun buscarItensDaSaida(
+        saidaId: String,
+        onResult: (List<ItemSaida>) -> Unit
+    ) {
+        viewModelScope.launch {
+            val itens = itemSaidaRepository.buscarPorSaidaId(saidaId)
+            onResult(itens)
         }
     }
 }

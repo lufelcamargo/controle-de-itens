@@ -10,14 +10,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.ListAlt
 import androidx.compose.material.icons.filled.PlaylistAdd
-import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -40,7 +39,8 @@ fun HomeScreen(
     onNovaSaidaClick: () -> Unit,
     onNovoModeloClick: () -> Unit,
     onCadastrarItemClick: () -> Unit,
-    onVerTudoClick: () -> Unit
+    onVerTudoClick: () -> Unit,
+    onSaidaClick: (String) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -164,7 +164,10 @@ fun HomeScreen(
                 titulo = saida.titulo,
                 data = formatarData(saida.dataCriacao),
                 quantidadeItens = quantidadeItens[saida.id] ?: 0,
-                concluida = saida.status == StatusSaida.FINALIZADA
+                concluida = saida.status == StatusSaida.FINALIZADA,
+                onClick = {
+                    onSaidaClick(saida.id)
+                }
             )
 
             Spacer(
@@ -183,10 +186,10 @@ private fun HomeActionButton(
     Surface(
         onClick = onClick,
         modifier = Modifier
-            .width(120.dp)
-            .height(80.dp),
-        shape = MaterialTheme.shapes.medium,
-        color = MaterialTheme.colorScheme.primary
+            .fillMaxWidth()
+            .height(72.dp),
+        shape = MaterialTheme.shapes.small,
+        color = MaterialTheme.colorScheme.surfaceVariant
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -257,9 +260,11 @@ private fun SaidaCard(
     titulo: String,
     data: String,
     quantidadeItens: Int,
-    concluida: Boolean
+    concluida: Boolean,
+    onClick: () -> Unit
 ) {
     Surface(
+        onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
             .height(72.dp),
@@ -284,7 +289,9 @@ private fun SaidaCard(
                 )
 
                 Text(
-                    text = "$data • $quantidadeItens ${if (quantidadeItens == 1) "item" else "itens"}",
+                    text = "$data • $quantidadeItens ${
+                        if (quantidadeItens == 1) "item" else "itens"
+                    }",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

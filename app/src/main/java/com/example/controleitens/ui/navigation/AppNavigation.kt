@@ -4,33 +4,37 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
+import androidx.navigation.navArgument
+import com.example.controleitens.data.local.database.DatabaseProvider
+import com.example.controleitens.data.local.repository.ItemRepositoryImpl
+import com.example.controleitens.data.local.repository.ItemSaidaRepositoryImpl
+import com.example.controleitens.data.local.repository.SaidaRepositoryImpl
 import com.example.controleitens.ui.components.BottomBar
 import com.example.controleitens.ui.screens.AboutScreen
 import com.example.controleitens.ui.screens.ConfigureSaidaScreen
 import com.example.controleitens.ui.screens.HomeScreen
 import com.example.controleitens.ui.screens.ItemsScreen
+import com.example.controleitens.ui.screens.SaidaDetalhesScreen
+import com.example.controleitens.ui.screens.SaidasScreen
 import com.example.controleitens.ui.screens.SettingsScreen
-
-import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.controleitens.data.local.database.DatabaseProvider
-import com.example.controleitens.data.local.repository.ItemRepositoryImpl
 import com.example.controleitens.ui.viewmodel.ItemsViewModel
 import com.example.controleitens.ui.viewmodel.ItemsViewModelFactory
-
-import com.example.controleitens.data.local.repository.SaidaRepositoryImpl
-import com.example.controleitens.data.local.repository.ItemSaidaRepositoryImpl
-import com.example.controleitens.ui.screens.SaidasScreen
 import com.example.controleitens.ui.viewmodel.SaidasViewModel
 import com.example.controleitens.ui.viewmodel.SaidasViewModelFactory
-
 
 @Composable
 fun AppNavigation() {
@@ -44,9 +48,16 @@ fun AppNavigation() {
 
     val database = DatabaseProvider.getDatabase(context)
 
-    val saidaRepository = SaidaRepositoryImpl(database.saidaDao())
-    val itemSaidaRepository = ItemSaidaRepositoryImpl(database.itemSaidaDao())
+    // Repositórios de saídas
+    val saidaRepository = SaidaRepositoryImpl(
+        database.saidaDao()
+    )
 
+    val itemSaidaRepository = ItemSaidaRepositoryImpl(
+        database.itemSaidaDao()
+    )
+
+    // ViewModel de saídas
     val saidasViewModel: SaidasViewModel = viewModel(
         factory = SaidasViewModelFactory(
             saidaRepository,
@@ -58,10 +69,12 @@ fun AppNavigation() {
 
     val quantidadeItens by saidasViewModel.quantidadeItens.collectAsState()
 
+    // Repositório de itens
     val itemRepository = ItemRepositoryImpl(
         database.itemDao()
     )
 
+    // ViewModel de itens
     val itemsViewModel: ItemsViewModel = viewModel(
         factory = ItemsViewModelFactory(itemRepository)
     )
@@ -82,6 +95,7 @@ fun AppNavigation() {
                             popUpTo("inicio") {
                                 saveState = true
                             }
+
                             launchSingleTop = true
                             restoreState = true
                         }
@@ -99,6 +113,10 @@ fun AppNavigation() {
                 .statusBarsPadding()
         ) {
 
+            // ---------------------------------------------------------
+            // HOME
+            // ---------------------------------------------------------
+
             composable("inicio") {
                 HomeScreen(
                     saidas = saidas,
@@ -114,9 +132,17 @@ fun AppNavigation() {
                     },
                     onVerTudoClick = {
                         navController.navigate("saidas")
+                    },
+                    onSaidaClick = { id ->
+                        navController.navigate("saida/$id")
                     }
                 )
             }
+
+            // ---------------------------------------------------------
+            // TODAS AS SAÍDAS
+            // ---------------------------------------------------------
+
             composable("saidas") {
                 SaidasScreen(
                     saidas = saidas,
@@ -125,10 +151,60 @@ fun AppNavigation() {
                         navController.popBackStack()
                     },
                     onSaidaClick = { id ->
-                        // Vamos implementar a tela de detalhes depois
+                        navController.navigate("saida/$id")
                     }
                 )
             }
+
+            // ---------------------------------------------------------
+            // DETALHES DA SAÍDA
+            // ---------------------------------------------------------
+
+            composable(
+                route = "saida/{saidaId}",
+                arguments = listOf(
+                    navArgument("saidaId") {
+                        type = NavType.StringType
+                    }
+                )
+            ) { backStackEntry ->
+
+                val saidaId = backStackEntry.arguments
+                    ?.getString("saidaId")
+
+                val saida = saidas.firstOrNull {
+                    it.id == saidaId
+                }
+
+                var itensDaSaida by remember {
+                    mutableStateOf(emptyList<com.example.controleitens.domain.model.ItemSaida>())
+                }
+
+                LaunchedEffect(saidaId) {
+                    if (saidaId != null) {
+                        saidasViewModel.buscarItensDaSaida(
+                            saidaId = saidaId
+                        ) { itens ->
+                            itensDaSaida = itens
+                        }
+                    }
+                }
+
+                if (saida != null) {
+                    SaidaDetalhesScreen(
+                        saida = saida,
+                        itens = itensDaSaida,
+                        onBackClick = {
+                            navController.popBackStack()
+                        }
+                    )
+                }
+            }
+
+            // ---------------------------------------------------------
+            // ITENS
+            // ---------------------------------------------------------
+
             composable("itens") {
                 ItemsScreen(
                     itens = itens,
@@ -147,6 +223,10 @@ fun AppNavigation() {
                 )
             }
 
+            // ---------------------------------------------------------
+            // AJUSTES
+            // ---------------------------------------------------------
+
             composable("ajustes") {
                 SettingsScreen(
                     onSobreClick = {
@@ -155,9 +235,17 @@ fun AppNavigation() {
                 )
             }
 
+            // ---------------------------------------------------------
+            // SOBRE
+            // ---------------------------------------------------------
+
             composable("sobre") {
                 AboutScreen()
             }
+
+            // ---------------------------------------------------------
+            // NOVA SAÍDA
+            // ---------------------------------------------------------
 
             composable("nova_saida") {
                 ConfigureSaidaScreen(
@@ -178,6 +266,10 @@ fun AppNavigation() {
                     }
                 )
             }
+
+            // ---------------------------------------------------------
+            // NOVO MODELO
+            // ---------------------------------------------------------
 
             composable("novo_modelo") {
                 ConfigureSaidaScreen(
