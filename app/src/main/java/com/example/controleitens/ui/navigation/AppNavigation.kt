@@ -37,6 +37,7 @@ import com.example.controleitens.ui.viewmodel.SaidasViewModel
 import com.example.controleitens.ui.viewmodel.SaidasViewModelFactory
 import com.example.controleitens.data.local.repository.ItemModeloRepositoryImpl
 import com.example.controleitens.data.local.repository.ModeloRepositoryImpl
+import com.example.controleitens.ui.screens.ItemConfiguracao
 import com.example.controleitens.ui.viewmodel.ModelosViewModel
 import com.example.controleitens.ui.screens.ModelosScreen
 import com.example.controleitens.ui.screens.ModeloDetalhesScreen
@@ -347,11 +348,26 @@ fun AppNavigation() {
                     ModeloDetalhesScreen(
                         modelo = modelo,
                         itens = itensDoModelo,
+
                         onBackClick = {
                             navController.popBackStack()
                         },
+
+                        onEditarClick = {
+                            navController.navigate("editar_modelo/$modeloId")
+                        },
+
+                        onExcluirClick = {
+                            modelosViewModel.excluirModelo(
+                                modeloId = modelo.id,
+                                onSuccess = {
+                                    navController.popBackStack()
+                                }
+                            )
+                        },
+
                         onCriarSaidaClick = {
-                            // Vamos ligar ao CriarSaidaModeloUseCase no próximo passo
+                            // Vamos implementar depois
                         }
                     )
                 }
@@ -381,6 +397,69 @@ fun AppNavigation() {
                         )
                     }
                 )
+            }
+            composable(
+                route = "editar_modelo/{modeloId}",
+                arguments = listOf(
+                    navArgument("modeloId") {
+                        type = NavType.StringType
+                    }
+                )
+            ) { backStackEntry ->
+
+                val modeloId = backStackEntry.arguments?.getString("modeloId")
+
+                val modelo = modelos.firstOrNull {
+                    it.id == modeloId
+                }
+
+                var itensDoModelo by remember {
+                    mutableStateOf(
+                        emptyList<com.example.controleitens.domain.model.ItemModelo>()
+                    )
+                }
+
+                LaunchedEffect(modeloId) {
+                    if (modeloId != null) {
+                        modelosViewModel.buscarItensDoModelo(
+                            modeloId = modeloId
+                        ) { itens ->
+                            itensDoModelo = itens
+                        }
+                    }
+                }
+
+                if (modelo != null) {
+                    ConfigureSaidaScreen(
+                        titulo = "Editar modelo",
+                        textoBotao = "Salvar alterações",
+                        nomeInicial = modelo.titulo,
+                        itensIniciais = itensDoModelo.map {
+                            ItemConfiguracao(
+                                itemId = it.itemId,
+                                nome = it.nomeItem,
+                                quantidade = it.quantidade
+                            )
+                        },
+                        itensDisponiveis = itens,
+                        onBackClick = {
+                            navController.popBackStack()
+                        },
+                        onCadastrarItem = { nome, onSuccess ->
+                            itemsViewModel.cadastrarItem(nome, onSuccess)
+                        },
+                        onConfirmClick = { nome, itens ->
+                            modelosViewModel.editarModelo(
+                                modeloId = modelo.id,
+                                titulo = nome,
+                                itens = itens,
+                                onSuccess = {
+                                    navController.popBackStack()
+                                }
+                            )
+                        }
+                    )
+                }
             }
         }
     }

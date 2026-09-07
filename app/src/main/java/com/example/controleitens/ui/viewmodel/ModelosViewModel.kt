@@ -39,7 +39,9 @@ class ModelosViewModel(
         viewModelScope.launch {
             val tituloLimpo = titulo.trim()
 
-            if (tituloLimpo.isBlank()) return@launch
+            if (tituloLimpo.isBlank()) {
+                return@launch
+            }
 
             val modeloId = UUID.randomUUID().toString()
 
@@ -68,6 +70,68 @@ class ModelosViewModel(
             onSuccess()
         }
     }
+
+    fun editarModelo(
+        modeloId: String,
+        titulo: String,
+        itens: List<ItemConfiguracao>,
+        onSuccess: () -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            val modelo = modeloRepository.buscarPorId(modeloId)
+                ?: return@launch
+
+            val tituloLimpo = titulo.trim()
+
+            if (tituloLimpo.isBlank()) {
+                return@launch
+            }
+
+            modeloRepository.editar(
+                modelo.copy(
+                    titulo = tituloLimpo
+                )
+            )
+
+            // Remove os itens antigos do modelo
+            itemModeloRepository.excluirPorModeloId(modeloId)
+
+            // Adiciona novamente os itens com as alterações
+            itens.forEach { item ->
+                if (item.itemId.isNotBlank()) {
+                    itemModeloRepository.adicionar(
+                        ItemModelo(
+                            id = UUID.randomUUID().toString(),
+                            modeloId = modeloId,
+                            itemId = item.itemId,
+                            nomeItem = item.nome,
+                            quantidade = item.quantidade
+                        )
+                    )
+                }
+            }
+
+            carregarModelos()
+            onSuccess()
+        }
+    }
+
+    fun excluirModelo(
+        modeloId: String,
+        onSuccess: () -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            // Primeiro remove os itens associados ao modelo
+            itemModeloRepository.excluirPorModeloId(modeloId)
+
+            // Depois remove o modelo
+            modeloRepository.excluir(modeloId)
+
+            carregarModelos()
+            onSuccess()
+        }
+    }
+
     fun buscarItensDoModelo(
         modeloId: String,
         onResult: (List<ItemModelo>) -> Unit

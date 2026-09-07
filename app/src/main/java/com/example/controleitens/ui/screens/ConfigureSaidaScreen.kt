@@ -15,14 +15,21 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -32,17 +39,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.controleitens.domain.model.Item
-
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.material3.SheetValue
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 
 data class ItemConfiguracao(
     val itemId: String,
@@ -58,10 +54,16 @@ fun ConfigureSaidaScreen(
     itensDisponiveis: List<Item>,
     onBackClick: () -> Unit,
     onCadastrarItem: (String, (Item) -> Unit) -> Unit,
-    onConfirmClick: (String, List<ItemConfiguracao>) -> Unit
+    onConfirmClick: (String, List<ItemConfiguracao>) -> Unit,
+    nomeInicial: String = "",
+    itensIniciais: List<ItemConfiguracao> = emptyList()
 ) {
-    var nome by remember {
-        mutableStateOf("")
+    var nome by remember(nomeInicial) {
+        mutableStateOf(nomeInicial)
+    }
+
+    var itens by remember(itensIniciais) {
+        mutableStateOf(itensIniciais)
     }
 
     var mostrarBottomSheet by remember {
@@ -78,11 +80,6 @@ fun ConfigureSaidaScreen(
 
     var itensSelecionados by remember {
         mutableStateOf(setOf<String>())
-    }
-
-    // Começa vazia.
-    var itens by remember {
-        mutableStateOf(emptyList<ItemConfiguracao>())
     }
 
     Column(
@@ -162,16 +159,13 @@ fun ConfigureSaidaScreen(
                 items = itens,
                 key = { it.itemId }
             ) { item ->
-
                 ItemConfiguracaoRow(
                     item = item,
                     onDiminuir = {
                         if (item.quantidade > 1) {
                             itens = itens.map {
                                 if (it.itemId == item.itemId) {
-                                    it.copy(
-                                        quantidade = it.quantidade - 1
-                                    )
+                                    it.copy(quantidade = it.quantidade - 1)
                                 } else {
                                     it
                                 }
@@ -181,12 +175,15 @@ fun ConfigureSaidaScreen(
                     onAumentar = {
                         itens = itens.map {
                             if (it.itemId == item.itemId) {
-                                it.copy(
-                                    quantidade = it.quantidade + 1
-                                )
+                                it.copy(quantidade = it.quantidade + 1)
                             } else {
                                 it
                             }
+                        }
+                    },
+                    onExcluir = {
+                        itens = itens.filter {
+                            it.itemId != item.itemId
                         }
                     }
                 )
@@ -473,7 +470,8 @@ fun ConfigureSaidaScreen(
 private fun ItemConfiguracaoRow(
     item: ItemConfiguracao,
     onDiminuir: () -> Unit,
-    onAumentar: () -> Unit
+    onAumentar: () -> Unit,
+    onExcluir: () -> Unit
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -519,6 +517,15 @@ private fun ItemConfiguracaoRow(
                 Icon(
                     imageVector = Icons.Default.Add,
                     contentDescription = "Aumentar quantidade"
+                )
+            }
+            IconButton(
+                onClick = onExcluir
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Excluir item",
+                    tint = MaterialTheme.colorScheme.error
                 )
             }
         }
