@@ -97,7 +97,7 @@ fun HomeScreen(
 
             HomeActionButton(
                 icon = Icons.Default.ListAlt,
-                text = "Novo Modelo",
+                text = "Modelos",
                 onClick = onNovoModeloClick
             )
         }

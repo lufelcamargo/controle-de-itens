@@ -38,6 +38,8 @@ import com.example.controleitens.ui.viewmodel.SaidasViewModelFactory
 import com.example.controleitens.data.local.repository.ItemModeloRepositoryImpl
 import com.example.controleitens.data.local.repository.ModeloRepositoryImpl
 import com.example.controleitens.ui.viewmodel.ModelosViewModel
+import com.example.controleitens.ui.screens.ModelosScreen
+import com.example.controleitens.ui.screens.ModeloDetalhesScreen
 
 @Composable
 fun AppNavigation() {
@@ -91,6 +93,7 @@ fun AppNavigation() {
     )
 
     val itens by itemsViewModel.itens.collectAsState()
+    val modelos by modelosViewModel.modelos.collectAsState()
 
     Scaffold(
         bottomBar = {
@@ -133,7 +136,7 @@ fun AppNavigation() {
                         navController.navigate("nova_saida")
                     },
                     onNovoModeloClick = {
-                        navController.navigate("novo_modelo")
+                        navController.navigate("modelos")
                     },
                     onCadastrarItemClick = {
                         navController.navigate("itens")
@@ -291,7 +294,68 @@ fun AppNavigation() {
                     }
                 )
             }
+            // ---------------------------------------------------------
+            // MODELOS
+            // ---------------------------------------------------------
 
+            composable("modelos") {
+                ModelosScreen(
+                    modelos = modelos,
+                    onBackClick = {
+                        navController.popBackStack()
+                    },
+                    onModeloClick = { id ->
+                        navController.navigate("modelo/$id")
+                    },
+                    onNovoModeloClick = {
+                        navController.navigate("novo_modelo")
+                    }
+                )
+            }
+
+            composable(
+                route = "modelo/{modeloId}",
+                arguments = listOf(
+                    navArgument("modeloId") {
+                        type = NavType.StringType
+                    }
+                )
+            ) { backStackEntry ->
+
+                val modeloId = backStackEntry.arguments
+                    ?.getString("modeloId")
+
+                val modelo = modelos.firstOrNull {
+                    it.id == modeloId
+                }
+
+                var itensDoModelo by remember {
+                    mutableStateOf(emptyList<com.example.controleitens.domain.model.ItemModelo>())
+                }
+
+                LaunchedEffect(modeloId) {
+                    if (modeloId != null) {
+                        modelosViewModel.buscarItensDoModelo(
+                            modeloId = modeloId
+                        ) { itens ->
+                            itensDoModelo = itens
+                        }
+                    }
+                }
+
+                if (modelo != null) {
+                    ModeloDetalhesScreen(
+                        modelo = modelo,
+                        itens = itensDoModelo,
+                        onBackClick = {
+                            navController.popBackStack()
+                        },
+                        onCriarSaidaClick = {
+                            // Vamos ligar ao CriarSaidaModeloUseCase no próximo passo
+                        }
+                    )
+                }
+            }
             // ---------------------------------------------------------
             // NOVO MODELO
             // ---------------------------------------------------------
