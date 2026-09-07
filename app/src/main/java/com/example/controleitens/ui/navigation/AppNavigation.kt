@@ -3,15 +3,12 @@ package com.example.controleitens.ui.navigation
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.example.controleitens.ui.components.BottomBar
 import com.example.controleitens.ui.screens.AboutScreen
@@ -20,30 +17,56 @@ import com.example.controleitens.ui.screens.HomeScreen
 import com.example.controleitens.ui.screens.ItemsScreen
 import com.example.controleitens.ui.screens.SettingsScreen
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.controleitens.data.local.database.DatabaseProvider
+import com.example.controleitens.data.local.repository.ItemRepositoryImpl
+import com.example.controleitens.ui.viewmodel.ItemsViewModel
+import com.example.controleitens.ui.viewmodel.ItemsViewModelFactory
+
+import com.example.controleitens.data.local.repository.SaidaRepositoryImpl
+import com.example.controleitens.data.local.repository.ItemSaidaRepositoryImpl
+import com.example.controleitens.ui.screens.SaidasScreen
+import com.example.controleitens.ui.viewmodel.SaidasViewModel
+import com.example.controleitens.ui.viewmodel.SaidasViewModelFactory
+
+
 @Composable
 fun AppNavigation() {
 
     val navController = rememberNavController()
 
-    var itens by remember {
-        mutableStateOf(
-            listOf(
-                "Caderno",
-                "Carteira",
-                "Carregador",
-                "Chaves",
-                "Fone de ouvido",
-                "Mochila"
-            )
-        )
-    }
-
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
+
+    val context = LocalContext.current
+
+    val database = DatabaseProvider.getDatabase(context)
+
+    val saidaRepository = SaidaRepositoryImpl(database.saidaDao())
+    val itemSaidaRepository = ItemSaidaRepositoryImpl(database.itemSaidaDao())
+
+    val saidasViewModel: SaidasViewModel = viewModel(
+        factory = SaidasViewModelFactory(
+            saidaRepository,
+            itemSaidaRepository
+        )
+    )
+
+    val saidas by saidasViewModel.saidas.collectAsState()
+
+    val quantidadeItens by saidasViewModel.quantidadeItens.collectAsState()
+
+    val itemRepository = ItemRepositoryImpl(
+        database.itemDao()
+    )
+
+    val itemsViewModel: ItemsViewModel = viewModel(
+        factory = ItemsViewModelFactory(itemRepository)
+    )
+
+    val itens by itemsViewModel.itens.collectAsState()
 
     Scaffold(
         bottomBar = {
@@ -86,18 +109,38 @@ fun AppNavigation() {
                     },
                     onNovoModeloClick = {
                         navController.navigate("novo_modelo")
+                    },
+                    onVerTudoClick = {
+                        navController.navigate("saidas")
                     }
                 )
             }
-
+            composable("saidas") {
+                SaidasScreen(
+                    saidas = saidas,
+                    quantidadeItens = quantidadeItens,
+                    onBackClick = {
+                        navController.popBackStack()
+                    },
+                    onSaidaClick = { id ->
+                        // Vamos implementar a tela de detalhes depois
+                    }
+                )
+            }
             composable("itens") {
                 ItemsScreen(
                     itens = itens,
-                    onItensChange = { novosItens ->
-                        itens = novosItens
-                    },
                     onCadastrarItemClick = {
                         // ...
+                    },
+                    onCadastrarItem = { nome ->
+                        itemsViewModel.cadastrarItem(nome)
+                    },
+                    onEditarItem = { id, novoNome ->
+                        itemsViewModel.editarItem(id, novoNome)
+                    },
+                    onExcluirItem = { id ->
+                        itemsViewModel.excluirItem(id)
                     }
                 )
             }
@@ -122,8 +165,14 @@ fun AppNavigation() {
                     onBackClick = {
                         navController.popBackStack()
                     },
-                    onConfirmClick = {
-                        // Por enquanto não faz nada
+                    onConfirmClick = { nome, itens ->
+                        saidasViewModel.criarSaida(
+                            titulo = nome,
+                            itens = itens,
+                            onSuccess = {
+                                navController.popBackStack()
+                            }
+                        )
                     }
                 )
             }
@@ -136,7 +185,7 @@ fun AppNavigation() {
                     onBackClick = {
                         navController.popBackStack()
                     },
-                    onConfirmClick = {
+                    onConfirmClick = { nome, itens ->
                         // Por enquanto não faz nada
                     }
                 )

@@ -33,14 +33,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.controleitens.domain.model.Item
 
 @Composable
 fun ConfigureSaidaScreen(
     titulo: String,
     textoBotao: String,
-    itensDisponiveis: List<String>,
+    itensDisponiveis: List<Item>,
     onBackClick: () -> Unit,
-    onConfirmClick: () -> Unit
+    onConfirmClick: (String, List<ItemConfiguracao>) -> Unit
 ) {
     var nome by remember { mutableStateOf("") }
 
@@ -51,10 +52,10 @@ fun ConfigureSaidaScreen(
     var itens by remember {
         mutableStateOf(
             listOf(
-                ItemConfiguracao("Chaves", 1),
-                ItemConfiguracao("Carteira", 1),
-                ItemConfiguracao("Fone de ouvido", 2),
-                ItemConfiguracao("Caderno", 1)
+                ItemConfiguracao("", "Chaves", 1),
+                ItemConfiguracao("", "Carteira", 1),
+                ItemConfiguracao("", "Fone de ouvido", 2),
+                ItemConfiguracao("", "Caderno", 1)
             )
         )
     }
@@ -172,7 +173,9 @@ fun ConfigureSaidaScreen(
 
         // Botão inferior
         Button(
-            onClick = onConfirmClick,
+            onClick = {
+                onConfirmClick(nome.trim(), itens)
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 16.dp),
@@ -193,20 +196,20 @@ fun ConfigureSaidaScreen(
             },
             text = {
                 Column {
-                    itensDisponiveis.forEach { nomeItem ->
+                    itensDisponiveis.forEach { itemDisponivel ->
 
-                        val jaAdicionado = itens.any {
-                            it.nome == nomeItem
-                        }
+                        val jaAdicionado =
+                            itens.any { it.itemId == itemDisponivel.id }
 
                         Text(
-                            text = nomeItem,
+                            text = itemDisponivel.nome,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable {
+
                                     if (jaAdicionado) {
                                         itens = itens.map {
-                                            if (it.nome == nomeItem) {
+                                            if (it.itemId == itemDisponivel.id) {
                                                 it.copy(
                                                     quantidade = it.quantidade + 1
                                                 )
@@ -216,7 +219,8 @@ fun ConfigureSaidaScreen(
                                         }
                                     } else {
                                         itens = itens + ItemConfiguracao(
-                                            nome = nomeItem,
+                                            itemId = itemDisponivel.id,
+                                            nome = itemDisponivel.nome,
                                             quantidade = 1
                                         )
                                     }
@@ -246,7 +250,8 @@ fun ConfigureSaidaScreen(
     }
 }
 
-private data class ItemConfiguracao(
+data class ItemConfiguracao(
+    val itemId: String = "",
     val nome: String,
     val quantidade: Int
 )

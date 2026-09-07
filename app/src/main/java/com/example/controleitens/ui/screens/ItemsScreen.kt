@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -16,35 +17,32 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.material3.ExtendedFloatingActionButton
-
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import com.example.controleitens.domain.model.Item
 
 @Composable
 fun ItemsScreen(
-    itens: List<String>,
-    onItensChange: (List<String>) -> Unit,
-    onCadastrarItemClick: () -> Unit
+    itens: List<Item>,
+    onCadastrarItemClick: () -> Unit,
+    onCadastrarItem: (String) -> Unit,
+    onEditarItem: (String, String) -> Unit,
+    onExcluirItem: (String) -> Unit
 ) {
     var mostrarDialogoCadastro by remember {
         mutableStateOf(false)
@@ -171,25 +169,30 @@ fun ItemsScreen(
                 .fillMaxWidth()
                 .weight(1f)
         ) {
+
             val itensOrdenados = if (ordemCrescente) {
-                itens.sorted()
+                itens.sortedBy { it.nome }
             } else {
-                itens.sortedDescending()
+                itens.sortedByDescending { it.nome }
             }
 
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(4.dp),
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                contentPadding = PaddingValues(
                     bottom = 88.dp
                 )
             ) {
-                items(itensOrdenados) { item ->
+                items(
+                    items = itensOrdenados,
+                    key = { it.id }
+                ) { item ->
+
                     ItemRow(
-                        nome = item,
+                        nome = item.nome,
                         onClick = {
-                            itemEditando = item
-                            nomeEditado = item
+                            itemEditando = item.id
+                            nomeEditado = item.nome
                         }
                     )
                 }
@@ -228,8 +231,11 @@ fun ItemsScreen(
                 }
             )
         }
-
     }
+
+    /*
+     * DIÁLOGO DE CADASTRO
+     */
     if (mostrarDialogoCadastro) {
         AlertDialog(
             onDismissRequest = {
@@ -263,11 +269,7 @@ fun ItemsScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        val nome = nomeNovoItem.trim()
-
-                        onItensChange(
-                            (itens + nome).sorted()
-                        )
+                        onCadastrarItem(nomeNovoItem.trim())
 
                         nomeNovoItem = ""
                         mostrarDialogoCadastro = false
@@ -280,10 +282,14 @@ fun ItemsScreen(
         )
     }
 
+    /*
+     * DIÁLOGO DE EDIÇÃO
+     */
     if (itemEditando != null) {
         AlertDialog(
             onDismissRequest = {
                 itemEditando = null
+                nomeEditado = ""
             },
             title = {
                 Text("Editar item")
@@ -304,9 +310,9 @@ fun ItemsScreen(
             dismissButton = {
                 TextButton(
                     onClick = {
-                        onItensChange(
-                            itens.filter { it != itemEditando }
-                        )
+                        val id = itemEditando ?: return@TextButton
+
+                        onExcluirItem(id)
 
                         itemEditando = null
                         nomeEditado = ""
@@ -321,15 +327,10 @@ fun ItemsScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
+                        val id = itemEditando ?: return@TextButton
                         val nome = nomeEditado.trim()
 
-                        onItensChange(
-                            itens
-                                .map {
-                                    if (it == itemEditando) nome else it
-                                }
-                                .sorted()
-                        )
+                        onEditarItem(id, nome)
 
                         itemEditando = null
                         nomeEditado = ""
