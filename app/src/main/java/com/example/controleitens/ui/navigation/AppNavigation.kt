@@ -149,6 +149,11 @@ fun AppNavigation() {
                     },
                     onSaidaClick = { id ->
                         navController.navigate("saida/$id")
+                    },
+                    onExcluirSaidas = { ids: List<String> ->
+                        ids.forEach { id ->
+                            saidasViewModel.excluirSaida(id)
+                        }
                     }
                 )
             }
