@@ -35,6 +35,9 @@ import com.example.controleitens.ui.viewmodel.ItemsViewModel
 import com.example.controleitens.ui.viewmodel.ItemsViewModelFactory
 import com.example.controleitens.ui.viewmodel.SaidasViewModel
 import com.example.controleitens.ui.viewmodel.SaidasViewModelFactory
+import com.example.controleitens.data.local.repository.ItemModeloRepositoryImpl
+import com.example.controleitens.data.local.repository.ModeloRepositoryImpl
+import com.example.controleitens.ui.viewmodel.ModelosViewModel
 
 @Composable
 fun AppNavigation() {
@@ -68,6 +71,14 @@ fun AppNavigation() {
     val saidas by saidasViewModel.saidas.collectAsState()
 
     val quantidadeItens by saidasViewModel.quantidadeItens.collectAsState()
+
+    // ViewModel de modelos de saídas
+    val modelosViewModel = remember {
+        ModelosViewModel(
+            modeloRepository = ModeloRepositoryImpl(database.modeloDao()),
+            itemModeloRepository = ItemModeloRepositoryImpl(database.itemModeloDao())
+        )
+    }
 
     // Repositório de itens
     val itemRepository = ItemRepositoryImpl(
@@ -297,7 +308,13 @@ fun AppNavigation() {
                         itemsViewModel.cadastrarItem(nome, onSuccess)
                     },
                     onConfirmClick = { nome, itens ->
-                        // Por enquanto não faz nada
+                        modelosViewModel.criarModelo(
+                            titulo = nome,
+                            itens = itens,
+                            onSuccess = {
+                                navController.popBackStack()
+                            }
+                        )
                     }
                 )
             }
