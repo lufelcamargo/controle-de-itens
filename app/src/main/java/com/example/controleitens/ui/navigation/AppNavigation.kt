@@ -91,13 +91,10 @@ fun AppNavigation() {
                 BottomBar(
                     currentRoute = currentRoute ?: "inicio",
                     onNavigate = { route ->
-                        navController.navigate(route) {
-                            popUpTo("inicio") {
-                                saveState = true
+                        if (route != currentRoute) {
+                            navController.navigate(route) {
+                                launchSingleTop = true
                             }
-
-                            launchSingleTop = true
-                            restoreState = true
                         }
                     }
                 )
