@@ -35,6 +35,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.controleitens.domain.model.Item
 
+data class ItemConfiguracao(
+    val itemId: String,
+    val nome: String,
+    val quantidade: Int
+)
+
 @Composable
 fun ConfigureSaidaScreen(
     titulo: String,
@@ -43,21 +49,17 @@ fun ConfigureSaidaScreen(
     onBackClick: () -> Unit,
     onConfirmClick: (String, List<ItemConfiguracao>) -> Unit
 ) {
-    var nome by remember { mutableStateOf("") }
+    var nome by remember {
+        mutableStateOf("")
+    }
 
     var mostrarDialogoItens by remember {
         mutableStateOf(false)
     }
 
+    // Começa vazia.
     var itens by remember {
-        mutableStateOf(
-            listOf(
-                ItemConfiguracao("", "Chaves", 1),
-                ItemConfiguracao("", "Carteira", 1),
-                ItemConfiguracao("", "Fone de ouvido", 2),
-                ItemConfiguracao("", "Caderno", 1)
-            )
-        )
+        mutableStateOf(emptyList<ItemConfiguracao>())
     }
 
     Column(
@@ -90,12 +92,16 @@ fun ConfigureSaidaScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(
+            modifier = Modifier.height(16.dp)
+        )
 
         // Nome
         OutlinedTextField(
             value = nome,
-            onValueChange = { nome = it },
+            onValueChange = {
+                nome = it
+            },
             modifier = Modifier.fillMaxWidth(),
             label = {
                 Text(
@@ -109,7 +115,9 @@ fun ConfigureSaidaScreen(
             singleLine = true
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(
+            modifier = Modifier.height(24.dp)
+        )
 
         Text(
             text = "Itens",
@@ -117,7 +125,9 @@ fun ConfigureSaidaScreen(
             color = MaterialTheme.colorScheme.onSurface
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(
+            modifier = Modifier.height(8.dp)
+        )
 
         // Lista
         LazyColumn(
@@ -125,14 +135,17 @@ fun ConfigureSaidaScreen(
             verticalArrangement = Arrangement.spacedBy(4.dp),
             contentPadding = PaddingValues(bottom = 16.dp)
         ) {
-            items(itens) { item ->
+            items(
+                items = itens,
+                key = { it.itemId }
+            ) { item ->
 
                 ItemConfiguracaoRow(
                     item = item,
                     onDiminuir = {
                         if (item.quantidade > 1) {
                             itens = itens.map {
-                                if (it.nome == item.nome) {
+                                if (it.itemId == item.itemId) {
                                     it.copy(
                                         quantidade = it.quantidade - 1
                                     )
@@ -144,7 +157,7 @@ fun ConfigureSaidaScreen(
                     },
                     onAumentar = {
                         itens = itens.map {
-                            if (it.nome == item.nome) {
+                            if (it.itemId == item.itemId) {
                                 it.copy(
                                     quantidade = it.quantidade + 1
                                 )
@@ -174,7 +187,10 @@ fun ConfigureSaidaScreen(
         // Botão inferior
         Button(
             onClick = {
-                onConfirmClick(nome.trim(), itens)
+                onConfirmClick(
+                    nome.trim(),
+                    itens
+                )
             },
             modifier = Modifier
                 .fillMaxWidth()
@@ -198,16 +214,22 @@ fun ConfigureSaidaScreen(
                 Column {
                     itensDisponiveis.forEach { itemDisponivel ->
 
-                        val jaAdicionado =
-                            itens.any { it.itemId == itemDisponivel.id }
+                        val itemExistente = itens.firstOrNull {
+                            it.itemId == itemDisponivel.id
+                        }
 
                         Text(
-                            text = itemDisponivel.nome,
+                            text = if (itemExistente != null) {
+                                "${itemDisponivel.nome} (${itemExistente.quantidade})"
+                            } else {
+                                itemDisponivel.nome
+                            },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable {
 
-                                    if (jaAdicionado) {
+                                    if (itemExistente != null) {
+
                                         itens = itens.map {
                                             if (it.itemId == itemDisponivel.id) {
                                                 it.copy(
@@ -217,7 +239,9 @@ fun ConfigureSaidaScreen(
                                                 it
                                             }
                                         }
+
                                     } else {
+
                                         itens = itens + ItemConfiguracao(
                                             itemId = itemDisponivel.id,
                                             nome = itemDisponivel.nome,
@@ -249,12 +273,6 @@ fun ConfigureSaidaScreen(
         )
     }
 }
-
-data class ItemConfiguracao(
-    val itemId: String = "",
-    val nome: String,
-    val quantidade: Int
-)
 
 @Composable
 private fun ItemConfiguracaoRow(
