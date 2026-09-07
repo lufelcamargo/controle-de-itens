@@ -101,14 +101,16 @@ fun AppNavigation() {
 
             composable("inicio") {
                 HomeScreen(
-                    onCadastrarItemClick = {
-                        // Por enquanto não faz nada
-                    },
+                    saidas = saidas,
+                    quantidadeItens = quantidadeItens,
                     onNovaSaidaClick = {
                         navController.navigate("nova_saida")
                     },
                     onNovoModeloClick = {
                         navController.navigate("novo_modelo")
+                    },
+                    onCadastrarItemClick = {
+                        navController.navigate("itens")
                     },
                     onVerTudoClick = {
                         navController.navigate("saidas")

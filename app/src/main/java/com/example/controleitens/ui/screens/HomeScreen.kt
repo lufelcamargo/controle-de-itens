@@ -26,9 +26,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.controleitens.domain.model.Saida
+import com.example.controleitens.domain.model.StatusSaida
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun HomeScreen(
+    saidas: List<Saida>,
+    quantidadeItens: Map<String, Int>,
     onNovaSaidaClick: () -> Unit,
     onNovoModeloClick: () -> Unit,
     onCadastrarItemClick: () -> Unit,
@@ -149,68 +157,20 @@ fun HomeScreen(
             modifier = Modifier.height(8.dp)
         )
 
-        // Dados provisórios
-        SaidaCard(
-            titulo = "Faculdade",
-            data = "Hoje",
-            quantidadeItens = 8,
-            concluida = true
-        )
+        // Saídas recentes
+        saidas.take(6).forEach { saida ->
 
-        Spacer(
-            modifier = Modifier.height(8.dp)
-        )
+            SaidaCard(
+                titulo = saida.titulo,
+                data = formatarData(saida.dataCriacao),
+                quantidadeItens = quantidadeItens[saida.id] ?: 0,
+                concluida = saida.status == StatusSaida.FINALIZADA
+            )
 
-        SaidaCard(
-            titulo = "Academia",
-            data = "Ontem",
-            quantidadeItens = 5,
-            concluida = true
-        )
-
-        Spacer(
-            modifier = Modifier.height(8.dp)
-        )
-
-        SaidaCard(
-            titulo = "Faculdade",
-            data = "29/08",
-            quantidadeItens = 7,
-            concluida = false
-        )
-
-        Spacer(
-            modifier = Modifier.height(8.dp)
-        )
-
-        SaidaCard(
-            titulo = "Mercado",
-            data = "28/08",
-            quantidadeItens = 6,
-            concluida = true
-        )
-
-        Spacer(
-            modifier = Modifier.height(8.dp)
-        )
-
-        SaidaCard(
-            titulo = "Academia",
-            data = "27/08",
-            quantidadeItens = 4,
-            concluida = false
-        )
-
-        Spacer(
-            modifier = Modifier.height(8.dp)
-        )
-
-        SaidaCard(
-            titulo = "Faculdade",
-            data = "26/08",
-            quantidadeItens = 9,
-            concluida = true
-        )
+            Spacer(
+                modifier = Modifier.height(8.dp)
+            )
+        }
     }
 }
 
@@ -324,7 +284,7 @@ private fun SaidaCard(
                 )
 
                 Text(
-                    text = "$data • $quantidadeItens itens",
+                    text = "$data • $quantidadeItens ${if (quantidadeItens == 1) "item" else "itens"}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -345,6 +305,33 @@ private fun SaidaCard(
                 contentDescription = "Abrir saída",
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
+        }
+    }
+}
+
+private fun formatarData(timestamp: Long): String {
+    val hoje = Calendar.getInstance()
+
+    val data = Calendar.getInstance().apply {
+        timeInMillis = timestamp
+    }
+
+    return when {
+        hoje.get(Calendar.YEAR) == data.get(Calendar.YEAR) &&
+                hoje.get(Calendar.DAY_OF_YEAR) == data.get(Calendar.DAY_OF_YEAR) -> {
+            "Hoje"
+        }
+
+        hoje.get(Calendar.YEAR) == data.get(Calendar.YEAR) &&
+                hoje.get(Calendar.DAY_OF_YEAR) - 1 == data.get(Calendar.DAY_OF_YEAR) -> {
+            "Ontem"
+        }
+
+        else -> {
+            SimpleDateFormat(
+                "dd/MM",
+                Locale("pt", "BR")
+            ).format(Date(timestamp))
         }
     }
 }
