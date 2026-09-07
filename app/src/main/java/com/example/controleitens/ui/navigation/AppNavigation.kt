@@ -195,18 +195,13 @@ fun AppNavigation() {
                             navController.popBackStack()
                         },
                         onConferirItem = { itemId ->
-                            saidasViewModel.conferirItem(itemId) { saidaId ->
-                                saidasViewModel.buscarItensDaSaida(saidaId) { itensAtualizados ->
-                                    itensDaSaida = itensAtualizados
-                                }
-                            }
+                            saidasViewModel.conferirItem(itemId)
                         },
                         onDesconferirItem = { itemId ->
-                            saidasViewModel.desconferirItem(itemId) { saidaId ->
-                                saidasViewModel.buscarItensDaSaida(saidaId) { itensAtualizados ->
-                                    itensDaSaida = itensAtualizados
-                                }
-                            }
+                            saidasViewModel.desconferirItem(itemId)
+                        },
+                        onFinalizarSaida = {
+                            saidasViewModel.finalizarSaida(saida.id)
                         }
                     )
                 }
