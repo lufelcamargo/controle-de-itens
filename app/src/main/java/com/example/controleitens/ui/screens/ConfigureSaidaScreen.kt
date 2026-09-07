@@ -16,7 +16,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Remove
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -24,7 +23,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -35,26 +33,51 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.controleitens.domain.model.Item
 
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.SheetValue
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+
 data class ItemConfiguracao(
     val itemId: String,
     val nome: String,
     val quantidade: Int
 )
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConfigureSaidaScreen(
     titulo: String,
     textoBotao: String,
     itensDisponiveis: List<Item>,
     onBackClick: () -> Unit,
+    onCadastrarItem: (String, (Item) -> Unit) -> Unit,
     onConfirmClick: (String, List<ItemConfiguracao>) -> Unit
 ) {
     var nome by remember {
         mutableStateOf("")
     }
 
-    var mostrarDialogoItens by remember {
+    var mostrarBottomSheet by remember {
         mutableStateOf(false)
+    }
+
+    var mostrarCriarItem by remember {
+        mutableStateOf(false)
+    }
+
+    var nomeNovoItem by remember {
+        mutableStateOf("")
+    }
+
+    var itensSelecionados by remember {
+        mutableStateOf(setOf<String>())
     }
 
     // Começa vazia.
@@ -176,7 +199,8 @@ fun ConfigureSaidaScreen(
                         .fillMaxWidth()
                         .padding(vertical = 16.dp)
                         .clickable {
-                            mostrarDialogoItens = true
+                            itensSelecionados = emptySet()
+                            mostrarBottomSheet = true
                         },
                     color = MaterialTheme.colorScheme.primary,
                     style = MaterialTheme.typography.bodyLarge
@@ -202,38 +226,148 @@ fun ConfigureSaidaScreen(
     }
 
     // Diálogo para adicionar item
-    if (mostrarDialogoItens) {
-        AlertDialog(
+    if (mostrarBottomSheet) {
+        val sheetState = rememberModalBottomSheetState(
+            skipPartiallyExpanded = false
+        )
+
+        ModalBottomSheet(
             onDismissRequest = {
-                mostrarDialogoItens = false
+                mostrarBottomSheet = false
+                mostrarCriarItem = false
+                nomeNovoItem = ""
+                itensSelecionados = emptySet()
             },
-            title = {
-                Text("Adicionar item")
-            },
-            text = {
-                Column {
-                    itensDisponiveis.forEach { itemDisponivel ->
+            sheetState = sheetState
+        ) {
 
-                        val itemExistente = itens.firstOrNull {
-                            it.itemId == itemDisponivel.id
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+            ) {
+
+                Text(
+                    text = "Adicionar itens",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+
+                Spacer(
+                    modifier = Modifier.height(16.dp)
+                )
+
+                if (!mostrarCriarItem) {
+
+                    Text(
+                        text = "Selecione os itens que deseja adicionar.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Spacer(
+                        modifier = Modifier.height(8.dp)
+                    )
+
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f, fill = false)
+                    ) {
+
+                        items(
+                            items = itensDisponiveis,
+                            key = { it.id }
+                        ) { itemDisponivel ->
+
+                            val selecionado =
+                                itemDisponivel.id in itensSelecionados
+
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        itensSelecionados =
+                                            if (selecionado) {
+                                                itensSelecionados - itemDisponivel.id
+                                            } else {
+                                                itensSelecionados + itemDisponivel.id
+                                            }
+                                    }
+                                    .padding(vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+
+                                Checkbox(
+                                    checked = selecionado,
+                                    onCheckedChange = {
+                                        itensSelecionados =
+                                            if (selecionado) {
+                                                itensSelecionados - itemDisponivel.id
+                                            } else {
+                                                itensSelecionados + itemDisponivel.id
+                                            }
+                                    }
+                                )
+
+                                Text(
+                                    text = itemDisponivel.nome,
+                                    modifier = Modifier.weight(1f),
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
                         }
+                    }
 
-                        Text(
-                            text = if (itemExistente != null) {
-                                "${itemDisponivel.nome} (${itemExistente.quantidade})"
-                            } else {
-                                itemDisponivel.nome
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
+                    Spacer(
+                        modifier = Modifier.height(8.dp)
+                    )
+
+                    HorizontalDivider()
+
+                    Spacer(
+                        modifier = Modifier.height(8.dp)
+                    )
+
+                    OutlinedButton(
+                        onClick = {
+                            nomeNovoItem = ""
+                            mostrarCriarItem = true
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("+ Criar novo item")
+                    }
+
+                    Spacer(
+                        modifier = Modifier.height(8.dp)
+                    )
+
+                    Button(
+                        onClick = {
+
+                            itensSelecionados.forEach { itemId ->
+
+                                val itemDisponivel =
+                                    itensDisponiveis.firstOrNull {
+                                        it.id == itemId
+                                    }
+
+                                if (itemDisponivel != null) {
+
+                                    val itemExistente =
+                                        itens.firstOrNull {
+                                            it.itemId == itemDisponivel.id
+                                        }
 
                                     if (itemExistente != null) {
 
                                         itens = itens.map {
                                             if (it.itemId == itemDisponivel.id) {
                                                 it.copy(
-                                                    quantidade = it.quantidade + 1
+                                                    quantidade =
+                                                        it.quantidade + 1
                                                 )
                                             } else {
                                                 it
@@ -248,29 +382,90 @@ fun ConfigureSaidaScreen(
                                             quantidade = 1
                                         )
                                     }
-
-                                    mostrarDialogoItens = false
                                 }
-                                .padding(
-                                    horizontal = 8.dp,
-                                    vertical = 12.dp
-                                ),
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
+                            }
+
+                            itensSelecionados = emptySet()
+                            mostrarBottomSheet = false
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 16.dp),
+                        enabled = itensSelecionados.isNotEmpty()
+                    ) {
+                        Text("Adicionar")
                     }
-                }
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        mostrarDialogoItens = false
+
+                } else {
+
+                    Text(
+                        text = "Criar novo item",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+
+                    Spacer(
+                        modifier = Modifier.height(12.dp)
+                    )
+
+                    OutlinedTextField(
+                        value = nomeNovoItem,
+                        onValueChange = {
+                            nomeNovoItem = it
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = {
+                            Text("Nome do item")
+                        },
+                        singleLine = true
+                    )
+
+                    Spacer(
+                        modifier = Modifier.height(12.dp)
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+
+                        OutlinedButton(
+                            onClick = {
+                                mostrarCriarItem = false
+                                nomeNovoItem = ""
+                            },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("Cancelar")
+                        }
+
+                        Button(
+                            onClick = {
+
+                                onCadastrarItem(
+                                    nomeNovoItem.trim()
+                                ) { novoItem ->
+
+                                    itensSelecionados =
+                                        itensSelecionados + novoItem.id
+
+                                    mostrarCriarItem = false
+                                    nomeNovoItem = ""
+                                }
+                            },
+                            modifier = Modifier.weight(1f),
+                            enabled = nomeNovoItem.isNotBlank()
+                        ) {
+                            Text("Adicionar")
+                        }
                     }
-                ) {
-                    Text("Cancelar")
+
+                    Spacer(
+                        modifier = Modifier.height(16.dp)
+                    )
                 }
             }
-        )
+        }
     }
 }
 

@@ -125,4 +125,95 @@ class SaidasViewModel(
             onResult(itens)
         }
     }
+
+    fun alternarConferido(
+        itemId: String,
+        onSuccess: (String) -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            val item = itemSaidaRepository.buscarPorId(itemId)
+
+            if (item != null) {
+                val atualizado = if (item.conferido) {
+                    item.copy(
+                        conferido = false,
+                        faltando = false
+                    )
+                } else {
+                    item.copy(
+                        conferido = true,
+                        faltando = false
+                    )
+                }
+
+                itemSaidaRepository.editar(atualizado)
+
+                onSuccess(item.saidaId)
+            }
+        }
+    }
+
+    fun alternarFaltando(
+        itemId: String,
+        onSuccess: (String) -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            val item = itemSaidaRepository.buscarPorId(itemId)
+
+            if (item != null) {
+                val atualizado = if (item.faltando) {
+                    item.copy(
+                        faltando = false,
+                        conferido = false
+                    )
+                } else {
+                    item.copy(
+                        faltando = true,
+                        conferido = false
+                    )
+                }
+
+                itemSaidaRepository.editar(atualizado)
+
+                onSuccess(item.saidaId)
+            }
+        }
+    }
+    fun conferirItem(
+        itemId: String,
+        onSuccess: (String) -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            val item = itemSaidaRepository.buscarPorId(itemId)
+
+            if (item != null) {
+                itemSaidaRepository.editar(
+                    item.copy(
+                        conferido = true
+                    )
+                )
+
+                onSuccess(item.saidaId)
+            }
+        }
+    }
+
+    fun desconferirItem(
+        itemId: String,
+        onSuccess: (String) -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            val item = itemSaidaRepository.buscarPorId(itemId)
+
+            if (item != null) {
+                itemSaidaRepository.editar(
+                    item.copy(
+                        conferido = false
+                    )
+                )
+
+                onSuccess(item.saidaId)
+            }
+        }
+    }
 }

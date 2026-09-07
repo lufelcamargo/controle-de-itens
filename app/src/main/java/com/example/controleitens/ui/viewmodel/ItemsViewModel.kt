@@ -26,7 +26,10 @@ class ItemsViewModel(
         }
     }
 
-    fun cadastrarItem(nome: String) {
+    fun cadastrarItem(
+        nome: String,
+        onSuccess: (Item) -> Unit = {}
+    ) {
         viewModelScope.launch {
             val item = Item(
                 id = java.util.UUID.randomUUID().toString(),
@@ -35,7 +38,10 @@ class ItemsViewModel(
             )
 
             repository.cadastrar(item)
-            carregarItens()
+
+            _itens.value = repository.buscarAtivos()
+
+            onSuccess(item)
         }
     }
 

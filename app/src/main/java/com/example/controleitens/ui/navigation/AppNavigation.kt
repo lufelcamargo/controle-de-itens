@@ -193,6 +193,20 @@ fun AppNavigation() {
                         itens = itensDaSaida,
                         onBackClick = {
                             navController.popBackStack()
+                        },
+                        onConferirItem = { itemId ->
+                            saidasViewModel.conferirItem(itemId) { saidaId ->
+                                saidasViewModel.buscarItensDaSaida(saidaId) { itensAtualizados ->
+                                    itensDaSaida = itensAtualizados
+                                }
+                            }
+                        },
+                        onDesconferirItem = { itemId ->
+                            saidasViewModel.desconferirItem(itemId) { saidaId ->
+                                saidasViewModel.buscarItensDaSaida(saidaId) { itensAtualizados ->
+                                    itensDaSaida = itensAtualizados
+                                }
+                            }
                         }
                     )
                 }
@@ -252,6 +266,9 @@ fun AppNavigation() {
                     onBackClick = {
                         navController.popBackStack()
                     },
+                    onCadastrarItem = { nome, onSuccess ->
+                        itemsViewModel.cadastrarItem(nome, onSuccess)
+                    },
                     onConfirmClick = { nome, itens ->
                         saidasViewModel.criarSaida(
                             titulo = nome,
@@ -275,6 +292,9 @@ fun AppNavigation() {
                     itensDisponiveis = itens,
                     onBackClick = {
                         navController.popBackStack()
+                    },
+                    onCadastrarItem = { nome, onSuccess ->
+                        itemsViewModel.cadastrarItem(nome, onSuccess)
                     },
                     onConfirmClick = { nome, itens ->
                         // Por enquanto não faz nada
