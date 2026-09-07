@@ -1,5 +1,6 @@
 package com.example.controleitens.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -30,7 +31,8 @@ import androidx.compose.ui.unit.dp
 fun HomeScreen(
     onNovaSaidaClick: () -> Unit,
     onNovoModeloClick: () -> Unit,
-    onCadastrarItemClick: () -> Unit
+    onCadastrarItemClick: () -> Unit,
+    onVerTudoClick: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -136,7 +138,10 @@ fun HomeScreen(
             Text(
                 text = "Ver tudo",
                 style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.clickable {
+                    onVerTudoClick()
+                }
             )
         }
 
@@ -144,7 +149,7 @@ fun HomeScreen(
             modifier = Modifier.height(8.dp)
         )
 
-// Dados provisórios
+        // Dados provisórios
         SaidaCard(
             titulo = "Faculdade",
             data = "Hoje",
@@ -209,7 +214,6 @@ fun HomeScreen(
     }
 }
 
-
 @Composable
 private fun HomeActionButton(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
@@ -249,7 +253,6 @@ private fun HomeActionButton(
     }
 }
 
-
 @Composable
 private fun StatCard(
     value: String,
@@ -288,7 +291,6 @@ private fun StatCard(
         }
     }
 }
-
 
 @Composable
 private fun SaidaCard(
