@@ -43,7 +43,8 @@ fun HomeScreen(
     onVerTudoClick: () -> Unit,
     onSaidaClick: (String) -> Unit,
     saidasPendentes: Int,
-    itensAConferir: Int
+    itensAConferir: Int,
+    nomeUsuario: String,
 ) {
     Column(
         modifier = Modifier
@@ -62,7 +63,7 @@ fun HomeScreen(
         )
 
         Text(
-            text = "Olá, Daniela! 👋",
+            text = "Olá, $nomeUsuario! 👋",
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.primary
         )
