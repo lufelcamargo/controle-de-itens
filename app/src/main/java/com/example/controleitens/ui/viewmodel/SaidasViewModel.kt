@@ -30,7 +30,7 @@ class SaidasViewModel(
         carregarSaidas()
     }
 
-    private fun carregarSaidas() {
+    fun carregarSaidas(onSuccess: () -> Unit = {}) {
         viewModelScope.launch {
             val lista = saidaRepository.buscarTodas()
 
@@ -43,6 +43,8 @@ class SaidasViewModel(
             }
 
             _quantidadeItens.value = quantidades
+
+            onSuccess()
         }
     }
 
@@ -136,13 +138,11 @@ class SaidasViewModel(
             if (item != null) {
                 val atualizado = if (item.conferido) {
                     item.copy(
-                        conferido = false,
-                        faltando = false
+                        conferido = false
                     )
                 } else {
                     item.copy(
-                        conferido = true,
-                        faltando = false
+                        conferido = true
                     )
                 }
 
@@ -153,32 +153,6 @@ class SaidasViewModel(
         }
     }
 
-    fun alternarFaltando(
-        itemId: String,
-        onSuccess: (String) -> Unit = {}
-    ) {
-        viewModelScope.launch {
-            val item = itemSaidaRepository.buscarPorId(itemId)
-
-            if (item != null) {
-                val atualizado = if (item.faltando) {
-                    item.copy(
-                        faltando = false,
-                        conferido = false
-                    )
-                } else {
-                    item.copy(
-                        faltando = true,
-                        conferido = false
-                    )
-                }
-
-                itemSaidaRepository.editar(atualizado)
-
-                onSuccess(item.saidaId)
-            }
-        }
-    }
     fun conferirItem(
         itemId: String,
         onSuccess: (String) -> Unit = {}

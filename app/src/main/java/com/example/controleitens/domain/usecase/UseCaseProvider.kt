@@ -19,7 +19,6 @@ import com.example.controleitens.domain.usecase.saida.EditarSaidaUseCase
 import com.example.controleitens.domain.usecase.saida.ExcluirSaidaUseCase
 import com.example.controleitens.domain.usecase.saida.FinalizarSaidaUseCase
 import com.example.controleitens.domain.usecase.saida.ListarSaidasUseCase
-import com.example.controleitens.domain.usecase.saida.MarcarItemComoFaltandoUseCase
 import com.example.controleitens.domain.usecase.saida.RemoverItemSaidaUseCase
 
 import com.example.controleitens.domain.usecase.item.ListarItensUseCase
@@ -90,13 +89,6 @@ object UseCaseProvider {
 
     fun editarNomeItemSaida(context: Context): EditarNomeItemSaidaUseCase {
         return EditarNomeItemSaidaUseCase(
-            RepositoryProvider.saidaRepository(context),
-            RepositoryProvider.itemSaidaRepository(context)
-        )
-    }
-
-    fun marcarItemComoFaltando(context: Context): MarcarItemComoFaltandoUseCase {
-        return MarcarItemComoFaltandoUseCase(
             RepositoryProvider.saidaRepository(context),
             RepositoryProvider.itemSaidaRepository(context)
         )

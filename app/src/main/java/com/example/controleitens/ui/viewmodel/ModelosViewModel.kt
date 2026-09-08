@@ -6,6 +6,7 @@ import com.example.controleitens.domain.model.ItemModelo
 import com.example.controleitens.domain.model.Modelo
 import com.example.controleitens.domain.repository.ItemModeloRepository
 import com.example.controleitens.domain.repository.ModeloRepository
+import com.example.controleitens.domain.usecase.saida.CriarSaidaModeloUseCase
 import com.example.controleitens.ui.screens.ItemConfiguracao
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,7 +16,8 @@ import java.util.UUID
 
 class ModelosViewModel(
     private val modeloRepository: ModeloRepository,
-    private val itemModeloRepository: ItemModeloRepository
+    private val itemModeloRepository: ItemModeloRepository,
+    private val criarSaidaModeloUseCase: CriarSaidaModeloUseCase
 ) : ViewModel() {
 
     private val _modelos = MutableStateFlow<List<Modelo>>(emptyList())
@@ -93,10 +95,8 @@ class ModelosViewModel(
                 )
             )
 
-            // Remove os itens antigos do modelo
             itemModeloRepository.excluirPorModeloId(modeloId)
 
-            // Adiciona novamente os itens com as alterações
             itens.forEach { item ->
                 if (item.itemId.isNotBlank()) {
                     itemModeloRepository.adicionar(
@@ -121,14 +121,22 @@ class ModelosViewModel(
         onSuccess: () -> Unit = {}
     ) {
         viewModelScope.launch {
-            // Primeiro remove os itens associados ao modelo
             itemModeloRepository.excluirPorModeloId(modeloId)
-
-            // Depois remove o modelo
             modeloRepository.excluir(modeloId)
 
             carregarModelos()
             onSuccess()
+        }
+    }
+
+    fun criarSaidaAPartirDoModelo(
+        modeloId: String,
+        onSuccess: (String) -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            val saidaId = criarSaidaModeloUseCase(modeloId)
+
+            onSuccess(saidaId)
         }
     }
 

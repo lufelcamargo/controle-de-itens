@@ -41,8 +41,7 @@ class ItemSaidaRepositoryImpl(
             itemId = itemId,
             nomeItem = nomeItem,
             quantidade = quantidade,
-            conferido = conferido,
-            faltando = faltando
+            conferido = conferido
         )
     }
 
@@ -53,8 +52,7 @@ class ItemSaidaRepositoryImpl(
             itemId = itemId,
             nomeItem = nomeItem,
             quantidade = quantidade,
-            conferido = conferido,
-            faltando = faltando
+            conferido = conferido
         )
     }
 }

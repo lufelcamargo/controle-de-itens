@@ -37,6 +37,7 @@ import com.example.controleitens.ui.viewmodel.SaidasViewModel
 import com.example.controleitens.ui.viewmodel.SaidasViewModelFactory
 import com.example.controleitens.data.local.repository.ItemModeloRepositoryImpl
 import com.example.controleitens.data.local.repository.ModeloRepositoryImpl
+import com.example.controleitens.domain.usecase.saida.CriarSaidaModeloUseCase
 import com.example.controleitens.ui.screens.ItemConfiguracao
 import com.example.controleitens.ui.viewmodel.ModelosViewModel
 import com.example.controleitens.ui.screens.ModelosScreen
@@ -77,9 +78,18 @@ fun AppNavigation() {
 
     // ViewModel de modelos de saídas
     val modelosViewModel = remember {
+        val modeloRepository = ModeloRepositoryImpl(database.modeloDao())
+        val itemModeloRepository = ItemModeloRepositoryImpl(database.itemModeloDao())
+
         ModelosViewModel(
-            modeloRepository = ModeloRepositoryImpl(database.modeloDao()),
-            itemModeloRepository = ItemModeloRepositoryImpl(database.itemModeloDao())
+            modeloRepository = modeloRepository,
+            itemModeloRepository = itemModeloRepository,
+            criarSaidaModeloUseCase = CriarSaidaModeloUseCase(
+                modeloRepository = modeloRepository,
+                itemModeloRepository = itemModeloRepository,
+                saidaRepository = saidaRepository,
+                itemSaidaRepository = itemSaidaRepository
+            )
         )
     }
 
@@ -215,10 +225,19 @@ fun AppNavigation() {
                             navController.popBackStack()
                         },
                         onConferirItem = { itemId ->
-                            saidasViewModel.conferirItem(itemId)
+                            saidasViewModel.conferirItem(itemId) { saidaId ->
+                                saidasViewModel.buscarItensDaSaida(saidaId) { itens ->
+                                    itensDaSaida = itens
+                                }
+                            }
                         },
+
                         onDesconferirItem = { itemId ->
-                            saidasViewModel.desconferirItem(itemId)
+                            saidasViewModel.desconferirItem(itemId) { saidaId ->
+                                saidasViewModel.buscarItensDaSaida(saidaId) { itens ->
+                                    itensDaSaida = itens
+                                }
+                            }
                         },
                         onFinalizarSaida = {
                             saidasViewModel.finalizarSaida(saida.id)
@@ -367,7 +386,19 @@ fun AppNavigation() {
                         },
 
                         onCriarSaidaClick = {
-                            // Vamos implementar depois
+                            modelosViewModel.criarSaidaAPartirDoModelo(
+                                modeloId = modelo.id
+                            ) { saidaId ->
+                                saidasViewModel.carregarSaidas {
+                                    navController.navigate("saidas") {
+                                        popUpTo("inicio") {
+                                            inclusive = false
+                                        }
+                                    }
+
+                                    navController.navigate("saida/$saidaId")
+                                }
+                            }
                         }
                     )
                 }

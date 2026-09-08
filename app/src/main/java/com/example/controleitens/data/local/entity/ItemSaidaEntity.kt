@@ -11,6 +11,5 @@ data class ItemSaidaEntity(
     val itemId: String,
     val nomeItem: String,
     val quantidade: Int,
-    val conferido: Boolean,
-    val faltando: Boolean
+    val conferido: Boolean
 )
