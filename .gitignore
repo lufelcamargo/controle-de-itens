@@ -45,3 +45,5 @@ replay_pid*
 >>>>>>> 6c2f35841e64ce29b66624b57e443701bd5dd466
 
 keystore/
+# Build outputs
+app/release/
