@@ -239,6 +239,13 @@ fun AppNavigation() {
                                 }
                             }
                         },
+                        onExcluirItem = { itemId ->
+                            saidasViewModel.excluirItemDaSaida(itemId) { saidaId ->
+                                saidasViewModel.buscarItensDaSaida(saidaId) { itens ->
+                                    itensDaSaida = itens
+                                }
+                            }
+                        },
                         onFinalizarSaida = {
                             saidasViewModel.finalizarSaida(saida.id)
                         }

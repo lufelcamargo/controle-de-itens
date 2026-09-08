@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -39,7 +40,7 @@ import com.example.controleitens.domain.model.ItemSaida
 import com.example.controleitens.domain.model.Saida
 import java.text.SimpleDateFormat
 import java.util.Date
-import java.util.Locale
+import androidx.compose.ui.platform.LocalLocale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,7 +50,8 @@ fun SaidaDetalhesScreen(
     onBackClick: () -> Unit,
     onConferirItem: (String) -> Unit,
     onDesconferirItem: (String) -> Unit,
-    onFinalizarSaida: () -> Unit
+    onFinalizarSaida: () -> Unit,
+    onExcluirItem: (String) -> Unit
 ) {
     var mostrarAvisoFinalizacao by remember {
         mutableStateOf(false)
@@ -89,7 +91,7 @@ fun SaidaDetalhesScreen(
                 Text(
                     text = SimpleDateFormat(
                         "dd/MM/yyyy HH:mm",
-                        Locale.getDefault()
+                        LocalLocale.current.platformLocale
                     ).format(Date(saida.dataCriacao)),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -158,6 +160,9 @@ fun SaidaDetalhesScreen(
                             },
                             onDesconferir = {
                                 onDesconferirItem(item.id)
+                            },
+                            onExcluir = {
+                                onExcluirItem(item.id)
                             }
                         )
                     }
@@ -231,8 +236,11 @@ private fun ItemSaidaCard(
     item: ItemSaida,
     habilitado: Boolean,
     onConferir: () -> Unit,
-    onDesconferir: () -> Unit
+    onDesconferir: () -> Unit,
+    onExcluir: () -> Unit
 ) {
+    var mostrarDialogoExcluir by remember { mutableStateOf(false) }
+
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.small,
@@ -247,6 +255,18 @@ private fun ItemSaidaCard(
                 ),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            if (habilitado) {
+                IconButton(
+                    onClick = {
+                        mostrarDialogoExcluir = true
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Excluir item"
+                    )
+                }
+            }
 
             Column(
                 modifier = Modifier.weight(1f)
@@ -343,6 +363,43 @@ private fun ItemSaidaCard(
                     )
                 }
             }
+        }
+        if (mostrarDialogoExcluir) {
+            AlertDialog(
+                onDismissRequest = {
+                    mostrarDialogoExcluir = false
+                },
+                title = {
+                    Text("Excluir item?")
+                },
+                text = {
+                    Text(
+                        "O item \"${item.nomeItem}\" será removido desta saída."
+                    )
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            mostrarDialogoExcluir = false
+                            onExcluir()
+                        }
+                    ) {
+                        Text(
+                            text = "Excluir",
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = {
+                            mostrarDialogoExcluir = false
+                        }
+                    ) {
+                        Text("Cancelar")
+                    }
+                }
+            )
         }
     }
 }

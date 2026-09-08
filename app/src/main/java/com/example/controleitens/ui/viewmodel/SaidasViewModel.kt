@@ -190,4 +190,18 @@ class SaidasViewModel(
             }
         }
     }
+
+    fun excluirItemDaSaida(
+        itemId: String,
+        onSuccess: (String) -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            val item = itemSaidaRepository.buscarPorId(itemId)
+
+            if (item != null) {
+                itemSaidaRepository.excluir(itemId)
+                onSuccess(item.saidaId)
+            }
+        }
+    }
 }
