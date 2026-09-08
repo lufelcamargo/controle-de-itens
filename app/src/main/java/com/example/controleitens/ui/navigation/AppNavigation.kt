@@ -39,6 +39,7 @@ import com.example.controleitens.data.local.repository.ItemModeloRepositoryImpl
 import com.example.controleitens.data.local.repository.ModeloRepositoryImpl
 import com.example.controleitens.data.preferences.UserPreferences
 import com.example.controleitens.domain.usecase.saida.CriarSaidaModeloUseCase
+import com.example.controleitens.ui.screens.EditarNomeScreen
 import com.example.controleitens.ui.screens.ItemConfiguracao
 import com.example.controleitens.ui.viewmodel.ModelosViewModel
 import com.example.controleitens.ui.screens.ModelosScreen
@@ -319,8 +320,28 @@ fun AppNavigation() {
 
                 composable("ajustes") {
                     SettingsScreen(
+                        nomeUsuario = nomeUsuario ?: "",
+                        onNomeClick = {
+                            navController.navigate("editar_nome")
+                        },
                         onSobreClick = {
                             navController.navigate("sobre")
+                        }
+                    )
+                }
+                // ---------------------------------------------------------
+                // EDIÇÃO DO NOME DE USUÁRIO
+                // ---------------------------------------------------------
+
+                composable("editar_nome") {
+                    EditarNomeScreen(
+                        nomeAtual = nomeUsuario ?: "",
+                        onBackClick = {
+                            navController.popBackStack()
+                        },
+                        onSalvar = { novoNome ->
+                            userPreferencesViewModel.salvarNome(novoNome)
+                            navController.popBackStack()
                         }
                     )
                 }
