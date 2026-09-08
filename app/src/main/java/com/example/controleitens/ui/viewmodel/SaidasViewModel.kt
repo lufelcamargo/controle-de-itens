@@ -26,6 +26,12 @@ class SaidasViewModel(
     val quantidadeItens: StateFlow<Map<String, Int>> =
         _quantidadeItens.asStateFlow()
 
+    private val _saidasPendentes = MutableStateFlow(0)
+    val saidasPendentes: StateFlow<Int> = _saidasPendentes.asStateFlow()
+
+    private val _itensAConferir = MutableStateFlow(0)
+    val itensAConferir: StateFlow<Int> = _itensAConferir.asStateFlow()
+
     init {
         carregarSaidas()
     }
@@ -43,6 +49,22 @@ class SaidasViewModel(
             }
 
             _quantidadeItens.value = quantidades
+
+            val saidasEmAndamento = lista.count {
+                it.status == StatusSaida.EM_ANDAMENTO
+            }
+
+            _saidasPendentes.value = saidasEmAndamento
+
+            val itensPendentes = lista
+                .filter { it.status == StatusSaida.EM_ANDAMENTO }
+                .sumOf { saida ->
+                    itemSaidaRepository
+                        .buscarPorSaidaId(saida.id)
+                        .count { !it.conferido }
+                }
+
+            _itensAConferir.value = itensPendentes
 
             onSuccess()
         }

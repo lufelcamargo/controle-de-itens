@@ -76,6 +76,9 @@ fun AppNavigation() {
 
     val quantidadeItens by saidasViewModel.quantidadeItens.collectAsState()
 
+    val saidasPendentes by saidasViewModel.saidasPendentes.collectAsState()
+    val itensAConferir by saidasViewModel.itensAConferir.collectAsState()
+
     // ViewModel de modelos de saídas
     val modelosViewModel = remember {
         val modeloRepository = ModeloRepositoryImpl(database.modeloDao())
@@ -143,6 +146,8 @@ fun AppNavigation() {
                 HomeScreen(
                     saidas = saidas,
                     quantidadeItens = quantidadeItens,
+                    saidasPendentes = saidasPendentes,
+                    itensAConferir = itensAConferir,
                     onNovaSaidaClick = {
                         navController.navigate("nova_saida")
                     },

@@ -41,7 +41,9 @@ fun HomeScreen(
     onNovoModeloClick: () -> Unit,
     onCadastrarItemClick: () -> Unit,
     onVerTudoClick: () -> Unit,
-    onSaidaClick: (String) -> Unit
+    onSaidaClick: (String) -> Unit,
+    saidasPendentes: Int,
+    itensAConferir: Int
 ) {
     Column(
         modifier = Modifier
@@ -113,16 +115,16 @@ fun HomeScreen(
         ) {
 
             StatCard(
-                value = "2",
+                value = saidasPendentes.toString(),
                 line1 = "saídas",
                 line2 = "pendentes",
                 modifier = Modifier.weight(1f)
             )
 
             StatCard(
-                value = "10",
+                value = itensAConferir.toString(),
                 line1 = "itens",
-                line2 = "conferidos",
+                line2 = "a conferir",
                 modifier = Modifier.weight(1f)
             )
         }
