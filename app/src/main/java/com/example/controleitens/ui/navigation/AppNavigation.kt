@@ -1,8 +1,16 @@
 package com.example.controleitens.ui.navigation
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -19,6 +27,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.controleitens.BuildConfig
 import com.example.controleitens.data.local.database.DatabaseProvider
 import com.example.controleitens.data.local.repository.ItemRepositoryImpl
 import com.example.controleitens.data.local.repository.ItemSaidaRepositoryImpl
@@ -47,6 +56,13 @@ import com.example.controleitens.ui.screens.ModeloDetalhesScreen
 import com.example.controleitens.ui.screens.NomeUsuarioScreen
 import com.example.controleitens.ui.viewmodel.UserPreferencesViewModel
 import com.example.controleitens.ui.viewmodel.UserPreferencesViewModelFactory
+import com.example.controleitens.ui.viewmodel.UpdateViewModel
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.dp
 
 @Composable
 fun AppNavigation() {
@@ -101,6 +117,9 @@ fun AppNavigation() {
         )
     }
 
+    val updateViewModel: UpdateViewModel = viewModel()
+    val versaoAtual = BuildConfig.VERSION_NAME
+
     // Repositório de itens
     val itemRepository = ItemRepositoryImpl(
         database.itemDao()
@@ -125,6 +144,23 @@ fun AppNavigation() {
     val nomeUsuario by userPreferencesViewModel.nomeUsuario.collectAsState()
     val carregandoNome by userPreferencesViewModel.carregando.collectAsState()
 
+    val atualizacaoDisponivel by
+    updateViewModel.atualizacaoDisponivel.collectAsState()
+
+    var atualizacaoDispensada by remember {
+        mutableStateOf(false)
+    }
+
+    val baixandoAtualizacao by
+    updateViewModel.baixandoAtualizacao.collectAsState()
+
+    val progressoDownload by
+    updateViewModel.progressoDownload.collectAsState()
+
+    LaunchedEffect(Unit) {
+        updateViewModel.verificarAtualizacao(versaoAtual)
+    }
+
     Scaffold(
         bottomBar = {
             if (
@@ -147,6 +183,116 @@ fun AppNavigation() {
     ) { innerPadding ->
 
         if (!carregandoNome) {
+            if (atualizacaoDisponivel != null && !atualizacaoDispensada) {
+                val atualizacao = atualizacaoDisponivel!!
+
+                AlertDialog(
+                    onDismissRequest = {
+                        if (!baixandoAtualizacao) {
+                            atualizacaoDispensada = true
+                        }
+                    },
+                    title = {
+                        Text(
+                            if (baixandoAtualizacao) {
+                                "Baixando atualização"
+                            } else {
+                                "Atualização disponível"
+                            }
+                        )
+                    },
+                    text = {
+                        if (baixandoAtualizacao) {
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = atualizacao.versionName,
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+
+                                Spacer(modifier = Modifier.height(24.dp))
+
+                                LinearProgressIndicator(
+                                    progress = { progressoDownload },
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+
+                                Spacer(modifier = Modifier.height(8.dp))
+
+                                Text(
+                                    text = "${(progressoDownload * 100).toInt()}%",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        } else {
+                            Column(
+                                modifier = Modifier
+                                    .heightIn(max = 300.dp)
+                                    .verticalScroll(rememberScrollState())
+                            ) {
+                                Text(
+                                    text = "Uma nova versão do Controle de Itens está disponível: " +
+                                            atualizacao.versionName
+                                )
+
+                                if (atualizacao.releaseNotes.isNotBlank()) {
+                                    Spacer(modifier = Modifier.height(16.dp))
+
+                                    Text(
+                                        text = "Novidades",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+
+                                    Spacer(modifier = Modifier.height(8.dp))
+
+                                    Text(
+                                        text = atualizacao.releaseNotes,
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                }
+                            }
+                        }
+                    },
+                    confirmButton = {
+                        if (!baixandoAtualizacao) {
+                            TextButton(
+                                onClick = {
+                                    updateViewModel.baixarAtualizacao(
+                                        context = context,
+                                        release = atualizacao,
+                                        onSuccess = { arquivo ->
+                                            atualizacaoDispensada = true
+
+                                            updateViewModel.instalarAtualizacao(
+                                                context = context,
+                                                arquivo = arquivo
+                                            )
+                                        }
+                                    )
+                                }
+                            ) {
+                                Text("Atualizar")
+                            }
+                        }
+                    },
+                    dismissButton = {
+                        if (!baixandoAtualizacao) {
+                            TextButton(
+                                onClick = {
+                                    atualizacaoDispensada = true
+                                }
+                            ) {
+                                Text("Agora não")
+                            }
+                        }
+                    }
+                )
+            }
+
             NavHost(
                 navController = navController,
                 startDestination = if (nomeUsuario == null) {
