@@ -1,5 +1,6 @@
 package com.example.controleitens.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -7,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -41,23 +43,40 @@ import com.example.controleitens.domain.model.Saida
 import java.text.SimpleDateFormat
 import java.util.Date
 import androidx.compose.ui.platform.LocalLocale
+import com.example.controleitens.domain.model.Item
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.mutableStateOf
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SaidaDetalhesScreen(
     saida: Saida,
     itens: List<ItemSaida>,
+    itensDisponiveis: List<Item>,
     onBackClick: () -> Unit,
     onConferirItem: (String) -> Unit,
     onDesconferirItem: (String) -> Unit,
     onFinalizarSaida: () -> Unit,
-    onExcluirItem: (String) -> Unit
+    onExcluirItem: (String) -> Unit,
+    onAdicionarItem: (String, String, String, Int) -> Unit
 ) {
     var mostrarAvisoFinalizacao by remember {
         mutableStateOf(false)
     }
 
     val saidaFinalizada = saida.status.name == "FINALIZADA"
+
+    var mostrarBottomSheetAdicionar by remember {
+        mutableStateOf(false)
+    }
+
+    var itensSelecionados by remember {
+        mutableStateOf(setOf<String>())
+    }
 
     Scaffold(
         topBar = {
@@ -167,6 +186,23 @@ fun SaidaDetalhesScreen(
                         )
                     }
                 }
+                if (!saidaFinalizada) {
+                    Text(
+                        text = "+ Adicionar item",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                itensSelecionados = emptySet()
+                                mostrarBottomSheetAdicionar = true
+                            }
+                            .padding(
+                                horizontal = 20.dp,
+                                vertical = 16.dp
+                            ),
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
             }
 
             if (!saidaFinalizada) {
@@ -228,6 +264,121 @@ fun SaidaDetalhesScreen(
                 }
             }
         )
+    }
+    if (mostrarBottomSheetAdicionar) {
+        val sheetState = rememberModalBottomSheetState(
+            skipPartiallyExpanded = false
+        )
+
+        ModalBottomSheet(
+            onDismissRequest = {
+                mostrarBottomSheetAdicionar = false
+                itensSelecionados = emptySet()
+            },
+            sheetState = sheetState
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+            ) {
+                Text(
+                    text = "Adicionar itens",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = "Selecione os itens que deseja adicionar.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f, fill = false)
+                ) {
+                    items(
+                        items = itensDisponiveis,
+                        key = { it.id }
+                    ) { itemDisponivel ->
+
+                        val selecionado =
+                            itemDisponivel.id in itensSelecionados
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    itensSelecionados =
+                                        if (selecionado) {
+                                            itensSelecionados - itemDisponivel.id
+                                        } else {
+                                            itensSelecionados + itemDisponivel.id
+                                        }
+                                }
+                                .padding(vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Checkbox(
+                                checked = selecionado,
+                                onCheckedChange = {
+                                    itensSelecionados =
+                                        if (selecionado) {
+                                            itensSelecionados - itemDisponivel.id
+                                        } else {
+                                            itensSelecionados + itemDisponivel.id
+                                        }
+                                }
+                            )
+
+                            Text(
+                                text = itemDisponivel.nome,
+                                modifier = Modifier.weight(1f),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Button(
+                    onClick = {
+                        itensSelecionados.forEach { itemId ->
+
+                            val item = itensDisponiveis.firstOrNull {
+                                it.id == itemId
+                            }
+
+                            if (item != null) {
+                                onAdicionarItem(
+                                    saida.id,
+                                    item.id,
+                                    item.nome,
+                                    1
+                                )
+                            }
+                        }
+
+                        itensSelecionados = emptySet()
+                        mostrarBottomSheetAdicionar = false
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp),
+                    enabled = itensSelecionados.isNotEmpty()
+                ) {
+                    Text("Adicionar")
+                }
+            }
+        }
     }
 }
 

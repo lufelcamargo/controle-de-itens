@@ -226,4 +226,43 @@ class SaidasViewModel(
             }
         }
     }
+
+    fun adicionarItemASaida(
+        saidaId: String,
+        itemId: String,
+        nomeItem: String,
+        quantidade: Int = 1,
+        onSuccess: (String) -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            val itensExistentes =
+                itemSaidaRepository.buscarPorSaidaId(saidaId)
+
+            val itemExistente = itensExistentes.firstOrNull {
+                it.itemId == itemId
+            }
+
+            if (itemExistente != null) {
+                itemSaidaRepository.editar(
+                    itemExistente.copy(
+                        quantidade = itemExistente.quantidade + quantidade
+                    )
+                )
+            } else {
+                itemSaidaRepository.adicionar(
+                    ItemSaida(
+                        id = UUID.randomUUID().toString(),
+                        saidaId = saidaId,
+                        itemId = itemId,
+                        nomeItem = nomeItem,
+                        quantidade = quantidade
+                    )
+                )
+            }
+
+            carregarSaidas()
+
+            onSuccess(saidaId)
+        }
+    }
 }

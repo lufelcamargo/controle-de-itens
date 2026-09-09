@@ -260,6 +260,7 @@ fun AppNavigation() {
                         SaidaDetalhesScreen(
                             saida = saida,
                             itens = itensDaSaida,
+                            itensDisponiveis = itens,
                             onBackClick = {
                                 navController.popBackStack()
                             },
@@ -280,6 +281,18 @@ fun AppNavigation() {
                             },
                             onExcluirItem = { itemId ->
                                 saidasViewModel.excluirItemDaSaida(itemId) { saidaId ->
+                                    saidasViewModel.buscarItensDaSaida(saidaId) { itens ->
+                                        itensDaSaida = itens
+                                    }
+                                }
+                            },
+                            onAdicionarItem = { saidaId, itemId, nomeItem, quantidade ->
+                                saidasViewModel.adicionarItemASaida(
+                                    saidaId = saidaId,
+                                    itemId = itemId,
+                                    nomeItem = nomeItem,
+                                    quantidade = quantidade
+                                ) {
                                     saidasViewModel.buscarItensDaSaida(saidaId) { itens ->
                                         itensDaSaida = itens
                                     }
