@@ -444,6 +444,9 @@ fun AppNavigation() {
                                     }
                                 }
                             },
+                            onCadastrarItem = { nome, onSuccess ->
+                                itemsViewModel.cadastrarItem(nome, onSuccess)
+                            },
                             onFinalizarSaida = {
                                 saidasViewModel.finalizarSaida(saida.id)
                             }

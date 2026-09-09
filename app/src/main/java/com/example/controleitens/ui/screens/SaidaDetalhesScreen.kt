@@ -50,6 +50,8 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Button
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,7 +64,8 @@ fun SaidaDetalhesScreen(
     onDesconferirItem: (String) -> Unit,
     onFinalizarSaida: () -> Unit,
     onExcluirItem: (String) -> Unit,
-    onAdicionarItem: (String, String, String, Int) -> Unit
+    onAdicionarItem: (String, String, String, Int) -> Unit,
+    onCadastrarItem: (String, (Item) -> Unit) -> Unit
 ) {
     var mostrarAvisoFinalizacao by remember {
         mutableStateOf(false)
@@ -78,6 +81,13 @@ fun SaidaDetalhesScreen(
         mutableStateOf(setOf<String>())
     }
 
+    var mostrarCriarItem by remember {
+        mutableStateOf(false)
+    }
+
+    var nomeNovoItem by remember {
+        mutableStateOf("")
+    }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -349,6 +359,18 @@ fun SaidaDetalhesScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
+                OutlinedButton(
+                    onClick = {
+                        nomeNovoItem = ""
+                        mostrarCriarItem = true
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp)
+                ) {
+                    Text("+ Criar novo item")
+                }
+
                 Button(
                     onClick = {
                         itensSelecionados.forEach { itemId ->
@@ -379,6 +401,59 @@ fun SaidaDetalhesScreen(
                 }
             }
         }
+    }
+    if (mostrarCriarItem) {
+        AlertDialog(
+            onDismissRequest = {
+                mostrarCriarItem = false
+            },
+            title = {
+                Text("Criar novo item")
+            },
+            text = {
+                OutlinedTextField(
+                    value = nomeNovoItem,
+                    onValueChange = {
+                        nomeNovoItem = it
+                    },
+                    label = {
+                        Text("Nome do item")
+                    },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val nome = nomeNovoItem.trim()
+
+                        if (nome.isNotBlank()) {
+                            onCadastrarItem(
+                                nome
+                            ) { novoItem ->
+                                mostrarCriarItem = false
+
+                                itensSelecionados =
+                                    itensSelecionados + novoItem.id
+                            }
+                        }
+                    },
+                    enabled = nomeNovoItem.trim().isNotBlank()
+                ) {
+                    Text("Criar")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        mostrarCriarItem = false
+                    }
+                ) {
+                    Text("Cancelar")
+                }
+            }
+        )
     }
 }
 
