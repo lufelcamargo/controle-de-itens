@@ -23,6 +23,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -46,6 +50,9 @@ fun HomeScreen(
     itensAConferir: Int,
     nomeUsuario: String,
 ) {
+
+    var mostrarApenasAtivas by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -162,7 +169,11 @@ fun HomeScreen(
         )
 
         // Saídas recentes
-        saidas.take(6).forEach { saida ->
+        saidas
+            .sortedByDescending { it.dataCriacao }
+            .filter { !mostrarApenasAtivas || it.status == StatusSaida.EM_ANDAMENTO }
+            .take(6)
+            .forEach { saida ->
 
             SaidaCard(
                 titulo = saida.titulo,
