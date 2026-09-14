@@ -61,7 +61,7 @@ class SaidasViewModel(
                 .sumOf { saida ->
                     itemSaidaRepository
                         .buscarPorSaidaId(saida.id)
-                        .count { !it.conferido }
+                        .sumOf { if (!it.conferido) it.quantidade else 0 }
                 }
 
             _itensAConferir.value = itensPendentes
@@ -246,6 +246,8 @@ class SaidasViewModel(
 
             if (item != null) {
                 itemSaidaRepository.excluir(itemId)
+
+                carregarSaidas()
                 onSuccess(item.saidaId)
             }
         }
