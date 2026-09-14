@@ -52,6 +52,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Button
+import androidx.compose.material.icons.filled.Remove
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,6 +63,7 @@ fun SaidaDetalhesScreen(
     onBackClick: () -> Unit,
     onConferirItem: (String) -> Unit,
     onDesconferirItem: (String) -> Unit,
+    onAlterarQuantidadeItem: (String, Int) -> Unit,
     onFinalizarSaida: () -> Unit,
     onExcluirItem: (String) -> Unit,
     onAdicionarItem: (String, String, String, Int) -> Unit,
@@ -189,6 +191,9 @@ fun SaidaDetalhesScreen(
                             },
                             onDesconferir = {
                                 onDesconferirItem(item.id)
+                            },
+                            onAlterarQuantidade = { novaQuantidade ->
+                                onAlterarQuantidadeItem(item.id, novaQuantidade)
                             },
                             onExcluir = {
                                 onExcluirItem(item.id)
@@ -463,6 +468,7 @@ private fun ItemSaidaCard(
     habilitado: Boolean,
     onConferir: () -> Unit,
     onDesconferir: () -> Unit,
+    onAlterarQuantidade: (Int) -> Unit,
     onExcluir: () -> Unit
 ) {
     var mostrarDialogoExcluir by remember { mutableStateOf(false) }
@@ -506,11 +512,41 @@ private fun ItemSaidaCard(
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "Quantidade: ${item.quantidade}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(
+                            onClick = {
+                                onAlterarQuantidade(item.quantidade - 1)
+                            },
+                            enabled = habilitado && item.quantidade > 1,
+                            modifier = Modifier.size(32.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Remove,
+                                contentDescription = "Diminuir quantidade"
+                            )
+                        }
+
+                        Text(
+                            text = "${item.quantidade}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+
+                        IconButton(
+                            onClick = {
+                                onAlterarQuantidade(item.quantidade + 1)
+                            },
+                            enabled = habilitado,
+                            modifier = Modifier.size(32.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = "Aumentar quantidade"
+                            )
+                        }
+                    }
 
                     Text(
                         text = " • ",

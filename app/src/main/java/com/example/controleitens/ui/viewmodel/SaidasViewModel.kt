@@ -189,6 +189,7 @@ class SaidasViewModel(
                     )
                 )
 
+                carregarSaidas()
                 onSuccess(item.saidaId)
             }
         }
@@ -208,6 +209,29 @@ class SaidasViewModel(
                     )
                 )
 
+                carregarSaidas()
+
+                onSuccess(item.saidaId)
+            }
+        }
+    }
+
+    fun alterarQuantidadeItem(
+        itemId: String,
+        novaQuantidade: Int,
+        onSuccess: (String) -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            val item = itemSaidaRepository.buscarPorId(itemId)
+
+            if (item != null && novaQuantidade >= 1) {
+                itemSaidaRepository.editar(
+                    item.copy(
+                        quantidade = novaQuantidade
+                    )
+                )
+
+                carregarSaidas()
                 onSuccess(item.saidaId)
             }
         }

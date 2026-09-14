@@ -447,6 +447,16 @@ fun AppNavigation() {
                             onCadastrarItem = { nome, onSuccess ->
                                 itemsViewModel.cadastrarItem(nome, onSuccess)
                             },
+                            onAlterarQuantidadeItem = { itemId, novaQuantidade ->
+                                saidasViewModel.alterarQuantidadeItem(
+                                    itemId = itemId,
+                                    novaQuantidade = novaQuantidade
+                                ) { saidaId ->
+                                    saidasViewModel.buscarItensDaSaida(saidaId) { itens ->
+                                        itensDaSaida = itens
+                                    }
+                                }
+                            },
                             onFinalizarSaida = {
                                 saidasViewModel.finalizarSaida(saida.id)
                             }
