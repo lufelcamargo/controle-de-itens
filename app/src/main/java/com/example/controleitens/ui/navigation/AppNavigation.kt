@@ -1,5 +1,6 @@
 package com.example.controleitens.ui.navigation
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -59,10 +60,12 @@ import com.example.controleitens.ui.viewmodel.UserPreferencesViewModelFactory
 import com.example.controleitens.ui.viewmodel.UpdateViewModel
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
+
 
 @Composable
 fun AppNavigation() {
@@ -249,10 +252,10 @@ fun AppNavigation() {
 
                                     Spacer(modifier = Modifier.height(8.dp))
 
-                                    Text(
-                                        text = atualizacao.releaseNotes,
-                                        style = MaterialTheme.typography.bodyMedium
+                                    ReleaseNotesMarkdown(
+                                        markdown = atualizacao.releaseNotes
                                     )
+
                                 }
                             }
                         }
@@ -732,5 +735,74 @@ fun AppNavigation() {
                 }
             }
         }
+    }
+}
+
+
+@Composable
+fun ReleaseNotesMarkdown(
+    markdown: String
+) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        markdown
+            .lines()
+            .forEach { linha ->
+                when {
+                    linha.startsWith("### ") -> {
+                        Text(
+                            text = linha.removePrefix("### "),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+
+                    linha.startsWith("## ") -> {
+                        Text(
+                            text = linha.removePrefix("## "),
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+
+                    linha.startsWith("# ") -> {
+                        Text(
+                            text = linha.removePrefix("# "),
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+
+                    linha == "---" -> {
+                        HorizontalDivider(
+                            modifier = Modifier.padding(vertical = 4.dp),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    linha.startsWith("- ") -> {
+                        Text(
+                            text = "• ${linha.removePrefix("- ")}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+
+                    linha.isBlank() -> {
+                        Spacer(
+                            modifier = Modifier.height(4.dp)
+                        )
+                    }
+
+                    else -> {
+                        Text(
+                            text = linha,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+            }
     }
 }
