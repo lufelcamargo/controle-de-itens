@@ -39,6 +39,15 @@ import com.example.controleitens.domain.model.StatusSaida
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.runtime.derivedStateOf
+import java.util.Calendar
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.rememberDatePickerState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -60,6 +69,97 @@ fun SaidasScreen(
     var mostrarDialogoExclusao by remember {
         mutableStateOf(false)
     }
+
+    var textoPesquisa by remember {
+        mutableStateOf("")
+    }
+
+    var mostrarMenuFiltro by remember {
+        mutableStateOf(false)
+    }
+
+    var somenteAtivas by remember {
+        mutableStateOf(false)
+    }
+
+    var somenteFinalizadas by remember {
+        mutableStateOf(false)
+    }
+
+    var dataInicial by remember {
+        mutableStateOf<Long?>(null)
+    }
+
+    var dataFinal by remember {
+        mutableStateOf<Long?>(null)
+    }
+
+    var mostrarDatePickerInicial by remember {
+        mutableStateOf(false)
+    }
+
+    var mostrarDatePickerFinal by remember {
+        mutableStateOf(false)
+    }
+
+    val saidasFiltradas by remember(
+        saidas,
+        textoPesquisa,
+        somenteAtivas,
+        somenteFinalizadas,
+        dataInicial,
+        dataFinal
+    ) {
+        derivedStateOf {
+            saidas
+                .sortedByDescending { it.dataCriacao }
+                .filter { saida ->
+
+                    val correspondePesquisa =
+                        textoPesquisa.isBlank() ||
+                                saida.titulo.contains(
+                                    textoPesquisa,
+                                    ignoreCase = true
+                                )
+
+                    val correspondeStatus =
+                        when {
+                            somenteAtivas && !somenteFinalizadas ->
+                                saida.status == StatusSaida.EM_ANDAMENTO
+
+                            somenteFinalizadas && !somenteAtivas ->
+                                saida.status == StatusSaida.FINALIZADA
+
+                            else -> true
+                        }
+
+                    val correspondeData =
+                        when {
+                            dataInicial != null && dataFinal == null -> {
+                                saida.dataCriacao >= inicioDoDia(dataInicial!!) &&
+                                        saida.dataCriacao <
+                                        inicioDoDia(dataInicial!!) + 24 * 60 * 60 * 1000
+                            }
+
+                            dataInicial != null && dataFinal != null -> {
+                                saida.dataCriacao >= inicioDoDia(dataInicial!!) &&
+                                        saida.dataCriacao <
+                                        inicioDoDia(dataFinal!!) + 24 * 60 * 60 * 1000
+                            }
+
+                            else -> true
+                        }
+
+                    correspondePesquisa &&
+                            correspondeStatus &&
+                            correspondeData
+                }
+        }
+    }
+
+    var selecionarData by remember { mutableStateOf(false) }
+    var selecionarDataInicial by remember { mutableStateOf(false) }
+    var selecionarDataFinal by remember { mutableStateOf(false) }
 
     fun alternarSelecao(id: String) {
         selecionadas = if (id in selecionadas) {
@@ -148,6 +248,109 @@ fun SaidasScreen(
                 )
             }
         } else {
+            if (selecionarData) {
+                val datePickerState = rememberDatePickerState(
+                    initialSelectedDateMillis = dataInicial
+                )
+
+                DatePickerDialog(
+                    onDismissRequest = {
+                        selecionarData = false
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                dataInicial = datePickerState.selectedDateMillis
+                                dataFinal = null
+                                selecionarData = false
+                            }
+                        ) {
+                            Text("OK")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = {
+                                selecionarData = false
+                            }
+                        ) {
+                            Text("Cancelar")
+                        }
+                    }
+                ) {
+                    DatePicker(state = datePickerState)
+                }
+            }
+
+            if (selecionarDataInicial) {
+                val datePickerState = rememberDatePickerState()
+
+                DatePickerDialog(
+                    onDismissRequest = {
+                        selecionarDataInicial = false
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                dataInicial = datePickerState.selectedDateMillis
+                                selecionarDataInicial = false
+                                selecionarDataFinal = true
+                            }
+                        ) {
+                            Text("OK")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = {
+                                selecionarDataInicial = false
+                            }
+                        ) {
+                            Text("Cancelar")
+                        }
+                    }
+                ) {
+                    DatePicker(state = datePickerState)
+                }
+            }
+
+            if (selecionarDataFinal) {
+                val datePickerState = rememberDatePickerState()
+
+                DatePickerDialog(
+                    onDismissRequest = {
+                        selecionarDataFinal = false
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                val dataSelecionada = datePickerState.selectedDateMillis
+
+                                if (dataSelecionada != null && dataInicial != null) {
+                                    if (dataSelecionada >= dataInicial!!) {
+                                        dataFinal = dataSelecionada
+                                        selecionarDataFinal = false
+                                    }
+                                }
+                            }
+                        ) {
+                            Text("OK")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = {
+                                selecionarDataFinal = false
+                            }
+                        ) {
+                            Text("Cancelar")
+                        }
+                    }
+                ) {
+                    DatePicker(state = datePickerState)
+                }
+            }
+
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -158,8 +361,124 @@ fun SaidasScreen(
                 ),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        OutlinedTextField(
+                            value = textoPesquisa,
+                            onValueChange = { textoPesquisa = it },
+                            modifier = Modifier.weight(1f),
+                            placeholder = {
+                                Text("Pesquisar saída")
+                            },
+                            singleLine = true
+                        )
+
+                        IconButton(
+                            onClick = {
+                                mostrarMenuFiltro = true
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.FilterList,
+                                contentDescription = "Filtrar saídas"
+                            )
+                        }
+                    }
+                }
+
+                item {
+                    DropdownMenu(
+                        expanded = mostrarMenuFiltro,
+                        onDismissRequest = {
+                            mostrarMenuFiltro = false
+                        }
+                    ) {
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    if (dataInicial != null && dataFinal == null)
+                                        "Data: ${formatarDataFiltro(dataInicial!!)}"
+                                    else
+                                        "Selecionar data"
+                                )
+                            },
+                            onClick = {
+                                selecionarData = true
+                                mostrarMenuFiltro = false
+                            }
+                        )
+
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    if (dataInicial != null && dataFinal != null)
+                                        "Período: ${formatarDataFiltro(dataInicial!!)} - ${formatarDataFiltro(dataFinal!!)}"
+                                    else
+                                        "Selecionar período"
+                                )
+                            },
+                            onClick = {
+                                dataInicial = null
+                                dataFinal = null
+                                mostrarMenuFiltro = false
+                                selecionarDataInicial = true
+                            }
+                        )
+
+                        DropdownMenuItem(
+                            text = {
+                                Text("Mostrar somente ativas")
+                            },
+                            onClick = {
+                                somenteAtivas = true
+                                somenteFinalizadas = false
+                                mostrarMenuFiltro = false
+                            }
+                        )
+
+                        DropdownMenuItem(
+                            text = {
+                                Text("Mostrar somente finalizadas")
+                            },
+                            onClick = {
+                                somenteFinalizadas = true
+                                somenteAtivas = false
+                                mostrarMenuFiltro = false
+                            }
+                        )
+
+                        DropdownMenuItem(
+                            text = {
+                                Text("Mostrar todas")
+                            },
+                            onClick = {
+                                somenteAtivas = false
+                                somenteFinalizadas = false
+                                mostrarMenuFiltro = false
+                            }
+                        )
+
+                        DropdownMenuItem(
+                            text = {
+                                Text("Limpar filtros")
+                            },
+                            onClick = {
+                                textoPesquisa = ""
+                                somenteAtivas = false
+                                somenteFinalizadas = false
+                                dataInicial = null
+                                dataFinal = null
+                                mostrarMenuFiltro = false
+                            }
+                        )
+                    }
+                }
+
                 items(
-                    items = saidas,
+                    items = saidasFiltradas,
                     key = { it.id }
                 ) { saida ->
 
@@ -340,6 +659,19 @@ private fun SaidaCard(
         }
     }
 }
+
+private fun inicioDoDia(timestamp: Long): Long =
+    Calendar.getInstance().apply {
+        timeInMillis = timestamp
+        set(Calendar.HOUR_OF_DAY, 0)
+        set(Calendar.MINUTE, 0)
+        set(Calendar.SECOND, 0)
+        set(Calendar.MILLISECOND, 0)
+    }.timeInMillis
+
+private fun formatarDataFiltro(timestamp: Long): String =
+    SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        .format(Date(timestamp))
 
 private fun formatarData(timestamp: Long): String {
     val hoje = SimpleDateFormat(
