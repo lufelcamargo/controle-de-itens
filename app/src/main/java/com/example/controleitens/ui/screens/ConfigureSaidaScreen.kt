@@ -20,7 +20,6 @@ import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -39,6 +38,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.controleitens.domain.model.Item
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.AlertDialog
 
 data class ItemConfiguracao(
     val itemId: String,
@@ -244,7 +247,8 @@ fun ConfigureSaidaScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 20.dp)
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp)
             ) {
 
                 Text(
@@ -370,8 +374,8 @@ fun ConfigureSaidaScreen(
 
                 OutlinedButton(
                     onClick = {
-                        mostrarCriarItem = true
                         nomeNovoItem = ""
+                        mostrarCriarItem = true
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -440,6 +444,64 @@ fun ConfigureSaidaScreen(
                 }
             }
         }
+    }
+
+    // Diálogo para criar novo item
+    if (mostrarCriarItem) {
+        AlertDialog(
+            onDismissRequest = {
+                mostrarCriarItem = false
+            },
+            title = {
+                Text("Criar novo item")
+            },
+            text = {
+                OutlinedTextField(
+                    value = nomeNovoItem,
+                    onValueChange = {
+                        nomeNovoItem = it
+                    },
+                    label = {
+                        Text("Nome do item")
+                    },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val nomeItem = nomeNovoItem.trim()
+
+                        if (nomeItem.isNotEmpty()) {
+                            onCadastrarItem(nomeItem) { novoItem ->
+
+                                itensSelecionados =
+                                    itensSelecionados + novoItem.id
+
+                                quantidadesSelecionadas =
+                                    quantidadesSelecionadas +
+                                            (novoItem.id to 1)
+
+                                mostrarCriarItem = false
+                                nomeNovoItem = ""
+                            }
+                        }
+                    }
+                ) {
+                    Text("Adicionar")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        mostrarCriarItem = false
+                    }
+                ) {
+                    Text("Cancelar")
+                }
+            }
+        )
     }
 }
 

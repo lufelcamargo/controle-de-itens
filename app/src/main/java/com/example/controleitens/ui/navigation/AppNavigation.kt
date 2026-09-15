@@ -64,6 +64,11 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 
 
@@ -783,7 +788,27 @@ fun ReleaseNotesMarkdown(
 
                     linha.startsWith("- ") -> {
                         Text(
-                            text = "• ${linha.removePrefix("- ")}",
+                            text = buildAnnotatedString {
+                                val texto = linha.removePrefix("- ")
+                                val partes = texto.split("**")
+
+                                append("• ")
+
+                                partes.forEachIndexed { index, parte ->
+                                    if (index % 2 == 1) {
+                                        withStyle(
+                                            SpanStyle(
+                                                fontWeight = FontWeight.Bold,
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
+                                        ) {
+                                            append(parte)
+                                        }
+                                    } else {
+                                        append(parte)
+                                    }
+                                }
+                            },
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurface
                         )
@@ -796,13 +821,43 @@ fun ReleaseNotesMarkdown(
                     }
 
                     else -> {
-                        Text(
-                            text = linha,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface
+                        TextoMarkdown(
+                            texto = linha,
+                            style = MaterialTheme.typography.bodyMedium
                         )
                     }
                 }
             }
     }
+}
+@Composable
+fun TextoMarkdown(
+    texto: String,
+    style: TextStyle = MaterialTheme.typography.bodyMedium
+) {
+    val cor = MaterialTheme.colorScheme.onSurface
+
+    Text(
+        text = buildAnnotatedString {
+            val partes = texto.split("**")
+
+            partes.forEachIndexed { index, parte ->
+                withStyle(
+                    SpanStyle(
+                        color = cor,
+                        fontWeight = if (index % 2 == 1) {
+                            FontWeight.Bold
+                        } else {
+                            FontWeight.Normal
+                        }
+                    )
+                ) {
+                    append(parte)
+                }
+            }
+        },
+        style = style.copy(
+            color = cor
+        )
+    )
 }
