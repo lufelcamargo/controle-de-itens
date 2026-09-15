@@ -82,6 +82,10 @@ fun ConfigureSaidaScreen(
         mutableStateOf(setOf<String>())
     }
 
+    var quantidadesSelecionadas by remember {
+        mutableStateOf(emptyMap<String, Int>())
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -197,6 +201,7 @@ fun ConfigureSaidaScreen(
                         .padding(vertical = 16.dp)
                         .clickable {
                             itensSelecionados = emptySet()
+                            quantidadesSelecionadas = emptyMap()
                             mostrarBottomSheet = true
                         },
                     color = MaterialTheme.colorScheme.primary,
@@ -231,13 +236,11 @@ fun ConfigureSaidaScreen(
         ModalBottomSheet(
             onDismissRequest = {
                 mostrarBottomSheet = false
-                mostrarCriarItem = false
-                nomeNovoItem = ""
                 itensSelecionados = emptySet()
+                quantidadesSelecionadas = emptyMap()
             },
             sheetState = sheetState
         ) {
-
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -245,7 +248,7 @@ fun ConfigureSaidaScreen(
             ) {
 
                 Text(
-                    text = "Adicionar itens",
+                    text = "Adicionar item",
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -254,212 +257,186 @@ fun ConfigureSaidaScreen(
                     modifier = Modifier.height(16.dp)
                 )
 
-                if (!mostrarCriarItem) {
+                itensDisponiveis.forEach { itemDisponivel ->
 
-                    Text(
-                        text = "Selecione os itens que deseja adicionar.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    val selecionado =
+                        itemDisponivel.id in itensSelecionados
 
-                    Spacer(
-                        modifier = Modifier.height(8.dp)
-                    )
+                    val quantidade =
+                        quantidadesSelecionadas[itemDisponivel.id] ?: 1
 
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f, fill = false)
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        color = if (selecionado) {
+                            MaterialTheme.colorScheme.primaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.surfaceVariant
+                        },
+                        shape = MaterialTheme.shapes.small
                     ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(
+                                    horizontal = 8.dp,
+                                    vertical = 4.dp
+                                ),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
 
-                        items(
-                            items = itensDisponiveis,
-                            key = { it.id }
-                        ) { itemDisponivel ->
+                            Checkbox(
+                                checked = selecionado,
+                                onCheckedChange = { marcado ->
 
-                            val selecionado =
-                                itemDisponivel.id in itensSelecionados
-
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
+                                    if (marcado) {
                                         itensSelecionados =
-                                            if (selecionado) {
-                                                itensSelecionados - itemDisponivel.id
-                                            } else {
-                                                itensSelecionados + itemDisponivel.id
-                                            }
-                                    }
-                                    .padding(vertical = 4.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
+                                            itensSelecionados + itemDisponivel.id
 
-                                Checkbox(
-                                    checked = selecionado,
-                                    onCheckedChange = {
+                                        quantidadesSelecionadas =
+                                            quantidadesSelecionadas +
+                                                    (itemDisponivel.id to 1)
+
+                                    } else {
                                         itensSelecionados =
-                                            if (selecionado) {
-                                                itensSelecionados - itemDisponivel.id
-                                            } else {
-                                                itensSelecionados + itemDisponivel.id
-                                            }
+                                            itensSelecionados - itemDisponivel.id
+
+                                        quantidadesSelecionadas =
+                                            quantidadesSelecionadas -
+                                                    itemDisponivel.id
                                     }
-                                )
+                                }
+                            )
+
+                            Text(
+                                text = itemDisponivel.nome,
+                                modifier = Modifier.weight(1f),
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+
+                            if (selecionado) {
+
+                                IconButton(
+                                    onClick = {
+                                        if (quantidade > 1) {
+                                            quantidadesSelecionadas =
+                                                quantidadesSelecionadas +
+                                                        (
+                                                                itemDisponivel.id to
+                                                                        (quantidade - 1)
+                                                                )
+                                        }
+                                    },
+                                    enabled = quantidade > 1
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Remove,
+                                        contentDescription = "Diminuir quantidade"
+                                    )
+                                }
 
                                 Text(
-                                    text = itemDisponivel.nome,
-                                    modifier = Modifier.weight(1f),
+                                    text = quantidade.toString(),
                                     style = MaterialTheme.typography.bodyLarge,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
-                            }
-                        }
-                    }
 
-                    Spacer(
-                        modifier = Modifier.height(8.dp)
-                    )
-
-                    HorizontalDivider()
-
-                    Spacer(
-                        modifier = Modifier.height(8.dp)
-                    )
-
-                    OutlinedButton(
-                        onClick = {
-                            nomeNovoItem = ""
-                            mostrarCriarItem = true
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("+ Criar novo item")
-                    }
-
-                    Spacer(
-                        modifier = Modifier.height(8.dp)
-                    )
-
-                    Button(
-                        onClick = {
-
-                            itensSelecionados.forEach { itemId ->
-
-                                val itemDisponivel =
-                                    itensDisponiveis.firstOrNull {
-                                        it.id == itemId
+                                IconButton(
+                                    onClick = {
+                                        quantidadesSelecionadas =
+                                            quantidadesSelecionadas +
+                                                    (
+                                                            itemDisponivel.id to
+                                                                    (quantidade + 1)
+                                                            )
                                     }
-
-                                if (itemDisponivel != null) {
-
-                                    val itemExistente =
-                                        itens.firstOrNull {
-                                            it.itemId == itemDisponivel.id
-                                        }
-
-                                    if (itemExistente != null) {
-
-                                        itens = itens.map {
-                                            if (it.itemId == itemDisponivel.id) {
-                                                it.copy(
-                                                    quantidade =
-                                                        it.quantidade + 1
-                                                )
-                                            } else {
-                                                it
-                                            }
-                                        }
-
-                                    } else {
-
-                                        itens = itens + ItemConfiguracao(
-                                            itemId = itemDisponivel.id,
-                                            nome = itemDisponivel.nome,
-                                            quantidade = 1
-                                        )
-                                    }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Add,
+                                        contentDescription = "Aumentar quantidade"
+                                    )
                                 }
                             }
-
-                            itensSelecionados = emptySet()
-                            mostrarBottomSheet = false
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 16.dp),
-                        enabled = itensSelecionados.isNotEmpty()
-                    ) {
-                        Text("Adicionar")
+                        }
                     }
 
-                } else {
-
-                    Text(
-                        text = "Criar novo item",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-
                     Spacer(
-                        modifier = Modifier.height(12.dp)
+                        modifier = Modifier.height(4.dp)
                     )
+                }
 
-                    OutlinedTextField(
-                        value = nomeNovoItem,
-                        onValueChange = {
-                            nomeNovoItem = it
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        label = {
-                            Text("Nome do item")
-                        },
-                        singleLine = true
-                    )
+                Spacer(
+                    modifier = Modifier.height(12.dp)
+                )
 
-                    Spacer(
-                        modifier = Modifier.height(12.dp)
-                    )
+                OutlinedButton(
+                    onClick = {
+                        mostrarCriarItem = true
+                        nomeNovoItem = ""
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("+ Criar novo item")
+                }
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
+                Spacer(
+                    modifier = Modifier.height(8.dp)
+                )
 
-                        OutlinedButton(
-                            onClick = {
-                                mostrarCriarItem = false
-                                nomeNovoItem = ""
-                            },
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text("Cancelar")
-                        }
+                Button(
+                    onClick = {
 
-                        Button(
-                            onClick = {
+                        itensSelecionados.forEach { itemId ->
 
-                                onCadastrarItem(
-                                    nomeNovoItem.trim()
-                                ) { novoItem ->
-
-                                    itensSelecionados =
-                                        itensSelecionados + novoItem.id
-
-                                    mostrarCriarItem = false
-                                    nomeNovoItem = ""
+                            val itemDisponivel =
+                                itensDisponiveis.firstOrNull {
+                                    it.id == itemId
                                 }
-                            },
-                            modifier = Modifier.weight(1f),
-                            enabled = nomeNovoItem.isNotBlank()
-                        ) {
-                            Text("Adicionar")
-                        }
-                    }
 
-                    Spacer(
-                        modifier = Modifier.height(16.dp)
-                    )
+                            if (itemDisponivel != null) {
+
+                                val quantidadeSelecionada =
+                                    quantidadesSelecionadas[itemId] ?: 1
+
+                                val itemExistente =
+                                    itens.firstOrNull {
+                                        it.itemId == itemId
+                                    }
+
+                                if (itemExistente != null) {
+
+                                    itens = itens.map {
+                                        if (it.itemId == itemId) {
+                                            it.copy(
+                                                quantidade =
+                                                    it.quantidade +
+                                                            quantidadeSelecionada
+                                            )
+                                        } else {
+                                            it
+                                        }
+                                    }
+
+                                } else {
+
+                                    itens = itens + ItemConfiguracao(
+                                        itemId = itemDisponivel.id,
+                                        nome = itemDisponivel.nome,
+                                        quantidade = quantidadeSelecionada
+                                    )
+                                }
+                            }
+                        }
+
+                        itensSelecionados = emptySet()
+                        quantidadesSelecionadas = emptyMap()
+                        mostrarBottomSheet = false
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp),
+                    enabled = itensSelecionados.isNotEmpty()
+                ) {
+                    Text("Adicionar")
                 }
             }
         }
