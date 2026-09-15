@@ -36,6 +36,10 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.IconButton
 
 @Composable
 fun HomeScreen(
@@ -52,6 +56,7 @@ fun HomeScreen(
 ) {
 
     var mostrarApenasAtivas by remember { mutableStateOf(false) }
+    var mostrarMenuFiltro by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -147,12 +152,27 @@ fun HomeScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Saídas recentes",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
 
-            Text(
-                text = "Saídas recentes",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface
-            )
+                IconButton(
+                    onClick = {
+                        mostrarMenuFiltro = true
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.FilterList,
+                        contentDescription = "Filtrar saídas",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
 
             Text(
                 text = "Ver tudo",
@@ -160,6 +180,33 @@ fun HomeScreen(
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.clickable {
                     onVerTudoClick()
+                }
+            )
+        }
+
+        DropdownMenu(
+            expanded = mostrarMenuFiltro,
+            onDismissRequest = {
+                mostrarMenuFiltro = false
+            }
+        ) {
+            DropdownMenuItem(
+                text = {
+                    Text("Mostrar somente ativas")
+                },
+                onClick = {
+                    mostrarApenasAtivas = true
+                    mostrarMenuFiltro = false
+                }
+            )
+
+            DropdownMenuItem(
+                text = {
+                    Text("Mostrar todas")
+                },
+                onClick = {
+                    mostrarApenasAtivas = false
+                    mostrarMenuFiltro = false
                 }
             )
         }
